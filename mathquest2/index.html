@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+<title>MathQuest 2: Story Quests</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<div id="app">
+  <header id="hud" class="hud hidden">
+    <button id="backBtn" class="icon-btn" aria-label="Back">🗺️</button>
+    <div class="hud-stats">
+      <span class="stat" title="Experience">✨ <b id="xpCount">0</b></span>
+      <span class="stat" title="Gems">💎 <b id="gemCount">0</b></span>
+      <span class="stat" title="Story Cards">📜 <b id="cardCount">0</b></span>
+    </div>
+    <button id="parentBtn" class="icon-btn" aria-label="Parent dashboard">👤</button>
+  </header>
+
+  <main id="screens">
+    <section id="welcomeScreen" class="screen active">
+      <div class="welcome-card">
+        <div class="big-mascot">🦊📖</div>
+        <h1>MathQuest 2</h1>
+        <p class="subtitle">Story Quests · Ages 8–10</p>
+        <p class="lore">The Codex of Nines lies shattered.<br/>Solve story-puzzles to restore it.</p>
+        <button id="startBtn" class="primary-btn">Begin</button>
+        <button id="resetBtn" class="text-btn">Reset Progress</button>
+      </div>
+    </section>
+
+    <section id="realmScreen" class="screen">
+      <h2 class="screen-title">Choose a Realm</h2>
+      <div id="realmList" class="realm-list"></div>
+      <div class="codex-hint">Open the Codex 📜 from the top-right to read restored chapters.</div>
+    </section>
+
+    <section id="questScreen" class="screen">
+      <h2 class="screen-title" id="questTitle">Quest</h2>
+      <div id="questList" class="quest-list"></div>
+    </section>
+
+    <section id="playScreen" class="screen">
+      <div class="play-header">
+        <div id="progressBar" class="progress-bar"><div id="progressFill"></div></div>
+        <div class="play-tools">
+          <button id="readAloudBtn" class="tool-btn" title="Read aloud">🔊</button>
+          <button id="highlightBtn" class="tool-btn" title="Highlight numbers">🔆</button>
+          <button id="replayBtn" class="tool-btn" title="Replay scene">🔁</button>
+        </div>
+      </div>
+      <div id="sceneContainer" class="scene-container"></div>
+      <div id="storyText" class="story-text"></div>
+      <div id="questionText" class="question-text"></div>
+      <div id="choices" class="choices"></div>
+      <div id="explainBox" class="explain-box hidden"></div>
+      <div id="storyUnfurl" class="story-unfurl"></div>
+    </section>
+
+    <section id="rewardScreen" class="screen">
+      <div class="reward-card">
+        <h2 id="rewardTitle">Chapter Restored!</h2>
+        <div id="comicStrip" class="comic-strip"></div>
+        <div id="rewardItems" class="reward-items"></div>
+        <button id="continueBtn" class="primary-btn">Continue</button>
+      </div>
+    </section>
+
+    <section id="codexScreen" class="screen">
+      <h2 class="screen-title">📖 The Codex of Nines</h2>
+      <div id="codexContent" class="codex-content"></div>
+      <button id="closeCodexBtn" class="primary-btn">Close</button>
+    </section>
+
+    <section id="parentScreen" class="screen">
+      <h2 class="screen-title">Parent / Teacher Dashboard</h2>
+      <div id="parentContent" class="parent-content"></div>
+      <button id="closeParentBtn" class="primary-btn">Close</button>
+    </section>
+  </main>
+</div>
+
+<script src="scenes.js"></script>
+<script src="problems.js"></script>
+<script src="engine.js"></script>
+<script src="game.js"></script>
+</body>
+</html>
