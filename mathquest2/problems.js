@@ -77,7 +77,7 @@ const REALMS = [
     emoji: '🚀',
     desc: 'Fuel calculations, schedules, distance.',
     skillIds: ['multistep_2op', 'time_distance'],
-    unlocked: false,
+    unlocked: true,
     requires: ['fractions_of_quantity'],
   },
   {
@@ -86,7 +86,7 @@ const REALMS = [
     emoji: '🏪',
     desc: 'Money, percentages, change-making.',
     skillIds: ['money_change', 'percent_basic'],
-    unlocked: false,
+    unlocked: true,
     requires: ['multistep_2op'],
   },
   {
@@ -95,7 +95,7 @@ const REALMS = [
     emoji: '🌲',
     desc: 'Druid riddles: sequences, multiplication, factors.',
     skillIds: ['pattern_extend', 'multiplication'],
-    unlocked: false,
+    unlocked: true,
     requires: ['multistep_2op'],
   },
   {
@@ -104,7 +104,7 @@ const REALMS = [
     emoji: '🕵️',
     desc: 'Solve mysteries from numerical clues.',
     skillIds: ['logic_compare', 'multistep_2op'],
-    unlocked: false,
+    unlocked: true,
     requires: ['percent_basic'],
   },
 ];
