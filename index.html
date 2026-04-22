@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+<title>MathQuest: Island Adventure</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- HUD -->
+    <header id="hud" class="hud hidden">
+      <button id="backBtn" class="icon-btn" aria-label="Back to map">🗺️</button>
+      <div class="hud-stats">
+        <span class="stat">⭐ <b id="starCount">0</b></span>
+        <span class="stat">🪙 <b id="coinCount">0</b></span>
+        <span class="stat">🥚 <b id="eggCount">0</b>/4</span>
+      </div>
+      <button id="parentBtn" class="icon-btn" aria-label="Parent dashboard">👤</button>
+    </header>
+
+    <!-- Screens -->
+    <main id="screens">
+      <section id="welcomeScreen" class="screen active">
+        <div class="welcome-card">
+          <div class="big-mascot">🦊</div>
+          <h1>MathQuest</h1>
+          <p class="subtitle">Island Adventure</p>
+          <button id="startBtn" class="primary-btn">Play!</button>
+          <button id="resetBtn" class="text-btn">Start Over</button>
+        </div>
+      </section>
+
+      <section id="mapScreen" class="screen">
+        <h2 class="screen-title">Choose an Island</h2>
+        <div id="islandMap" class="island-map"></div>
+        <div id="companion" class="companion-display"></div>
+      </section>
+
+      <section id="playScreen" class="screen">
+        <div class="play-header">
+          <div id="progressBar" class="progress-bar"><div id="progressFill"></div></div>
+          <div id="streakDots" class="streak-dots"></div>
+        </div>
+        <div id="puzzleArea" class="puzzle-area"></div>
+        <div id="pipReaction" class="pip-reaction">🦊</div>
+        <div id="feedback" class="feedback"></div>
+      </section>
+
+      <section id="rewardScreen" class="screen">
+        <div class="reward-card">
+          <h2 id="rewardTitle">Great Job!</h2>
+          <div id="rewardStars" class="reward-stars"></div>
+          <div id="rewardItems" class="reward-items"></div>
+          <button id="continueBtn" class="primary-btn">Continue</button>
+        </div>
+      </section>
+
+      <section id="parentScreen" class="screen">
+        <h2 class="screen-title">Parent Dashboard</h2>
+        <div id="parentContent" class="parent-content"></div>
+        <button id="closeParentBtn" class="primary-btn">Close</button>
+      </section>
+    </main>
+  </div>
+
+  <script src="content.js"></script>
+  <script src="engine.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
