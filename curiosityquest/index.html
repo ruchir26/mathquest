@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+<title>CuriosityQuest: Atlas of Wonders</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<div id="app">
+  <header id="hud" class="hud hidden">
+    <button id="backBtn" class="icon-btn" aria-label="Back">🗺️</button>
+    <div class="hud-stats">
+      <span class="stat" title="Experience">✨ <b id="xpCount">0</b></span>
+      <span class="stat" title="Compass Shards">🧭 <b id="shardCount">0</b></span>
+      <span class="stat" title="Wonder Cards">📜 <b id="cardCount">0</b></span>
+    </div>
+    <div class="hud-tools">
+      <button id="codexBtn" class="icon-btn" aria-label="Codex" title="Codex of Wonders">📖</button>
+      <button id="parentBtn" class="icon-btn" aria-label="Parent dashboard" title="Parent / Teacher">👤</button>
+    </div>
+  </header>
+
+  <main id="screens">
+    <section id="welcomeScreen" class="screen active">
+      <div class="welcome-card">
+        <div class="big-mascot">
+          <svg viewBox="0 0 120 120" width="120" height="120" aria-hidden="true">
+            <defs>
+              <radialGradient id="globeGrad" cx="40%" cy="35%" r="65%">
+                <stop offset="0%" stop-color="#7ec8ff"/>
+                <stop offset="100%" stop-color="#1a3a8e"/>
+              </radialGradient>
+            </defs>
+            <circle cx="60" cy="60" r="46" fill="url(#globeGrad)" stroke="#0e2552" stroke-width="3"/>
+            <path d="M22,55 Q40,45 55,52 T98,50" fill="none" stroke="#fff8dc" stroke-width="2" opacity="0.8"/>
+            <path d="M30,72 Q55,80 80,70" fill="none" stroke="#fff8dc" stroke-width="2" opacity="0.6"/>
+            <path d="M40,30 Q60,38 78,30" fill="none" stroke="#fff8dc" stroke-width="2" opacity="0.6"/>
+            <ellipse cx="60" cy="60" rx="55" ry="14" fill="none" stroke="#ffd96b" stroke-width="2" transform="rotate(-18 60 60)"/>
+            <circle cx="105" cy="38" r="5" fill="#ffd96b"/>
+          </svg>
+        </div>
+        <h1>CuriosityQuest</h1>
+        <p class="subtitle">Atlas of Wonders · Ages 9–11</p>
+        <p class="lore">
+          The pages of the great <em>Codex of Wonders</em><br/>
+          are scattered across four islands.<br/>
+          Sail, solve, and bring them home.
+        </p>
+        <button id="startBtn" class="primary-btn">Set Sail</button>
+        <button id="resetBtn" class="text-btn">Reset Progress</button>
+      </div>
+    </section>
+
+    <section id="mapScreen" class="screen">
+      <h2 class="screen-title">The Atlas Archipelago</h2>
+      <div id="islandList" class="island-list"></div>
+      <div class="codex-hint">Tap an island to begin a quest.</div>
+    </section>
+
+    <section id="questScreen" class="screen">
+      <h2 class="screen-title" id="questTitle">Quests</h2>
+      <div id="questList" class="quest-list"></div>
+    </section>
+
+    <section id="playScreen" class="screen">
+      <div class="play-header">
+        <div id="progressBar" class="progress-bar"><div id="progressFill"></div></div>
+        <div class="play-tools">
+          <button id="hintBtn" class="tool-btn" title="Hint">💡</button>
+          <button id="replayBtn" class="tool-btn" title="Replay scene">🔁</button>
+        </div>
+      </div>
+      <div id="sceneContainer" class="scene-container"></div>
+      <div id="questionText" class="question-text"></div>
+      <div id="choices" class="choices"></div>
+      <div id="explainBox" class="explain-box hidden"></div>
+    </section>
+
+    <section id="rewardScreen" class="screen">
+      <div class="reward-card">
+        <h2 id="rewardTitle">Quest Complete!</h2>
+        <div id="rewardStars" class="reward-stars"></div>
+        <div id="wonderCard" class="wonder-card"></div>
+        <div id="rewardItems" class="reward-items"></div>
+        <button id="continueBtn" class="primary-btn">Continue</button>
+      </div>
+    </section>
+
+    <section id="codexScreen" class="screen">
+      <h2 class="screen-title">📖 Codex of Wonders</h2>
+      <div id="codexContent" class="codex-content"></div>
+      <button id="closeCodexBtn" class="primary-btn">Close</button>
+    </section>
+
+    <section id="parentScreen" class="screen">
+      <h2 class="screen-title">Parent / Teacher Dashboard</h2>
+      <div id="parentContent" class="parent-content"></div>
+      <button id="closeParentBtn" class="primary-btn">Close</button>
+    </section>
+  </main>
+</div>
+
+<script src="scenes.js"></script>
+<script src="content.js"></script>
+<script src="engine.js"></script>
+<script src="game.js"></script>
+</body>
+</html>
