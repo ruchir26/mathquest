@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+<title>CardQuest</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<div id="app">
+  <header id="hud" class="hud hidden">
+    <button id="backBtn" class="icon-btn" aria-label="Back">←</button>
+    <div class="hud-title" id="hudTitle">CardQuest</div>
+    <div class="hud-stats">
+      <span class="stat" title="Gold">🪙 <b id="goldCount">0</b></span>
+      <span class="stat" title="Packs">📦 <b id="packCount">0</b></span>
+      <span class="stat" title="Cards">🎴 <b id="ownedCount">0</b></span>
+    </div>
+  </header>
+
+  <main id="screens">
+    <!-- Title -->
+    <section id="titleScreen" class="screen active">
+      <div class="title-card">
+        <div class="title-glyph">🔮</div>
+        <h1>CardQuest</h1>
+        <p class="tag">Trading Card Battles · Powered by Math</p>
+        <button id="playBtn" class="primary-btn">Play</button>
+        <button id="howToBtn" class="secondary-btn">How to Play</button>
+        <button id="resetBtn" class="text-btn">Reset Save</button>
+      </div>
+    </section>
+
+    <!-- How to Play -->
+    <section id="howToScreen" class="screen">
+      <div class="howto-card">
+        <h2>How to Play</h2>
+        <ol class="howto-list">
+          <li>🎯 <b>Goal:</b> Reduce your opponent's HP from 20 to 0.</li>
+          <li>🎴 <b>Each turn:</b> Draw 1 card, gain +1 mana (max 10).</li>
+          <li>⚔️ <b>Creatures</b> stay on the board and attack each turn.</li>
+          <li>✨ <b>Spells</b> have a one-time effect.</li>
+          <li>🧮 <b>Math Cards</b> let you solve a puzzle to power up the effect — right answer = full power, wrong = half.</li>
+          <li>🌪️ <b>Element wheel:</b> Fire → Air → Earth → Water → Spirit → Fire. Beat the next element for +1 damage!</li>
+          <li>📦 <b>Packs:</b> Win battles to earn packs. Solve 3 puzzles to open them — the better you do, the rarer the cards.</li>
+        </ol>
+        <button class="primary-btn" id="howToCloseBtn">Got it!</button>
+      </div>
+    </section>
+
+    <!-- Map -->
+    <section id="mapScreen" class="screen">
+      <div class="map-header">
+        <h2 class="screen-title">🗺️ The Realms</h2>
+      </div>
+      <div id="zoneList" class="zone-list"></div>
+      <div class="map-actions">
+        <button class="secondary-btn" id="goCollectionBtn">🎴 Collection</button>
+        <button class="secondary-btn" id="goDeckBtn">🛠️ Deck Builder</button>
+        <button class="secondary-btn" id="goTradeBtn">🤝 Trader</button>
+      </div>
+    </section>
+
+    <!-- Battle -->
+    <section id="battleScreen" class="screen">
+      <div class="battle-board">
+        <div class="player-area opponent" id="oppArea">
+          <div class="player-info">
+            <span class="hero-emoji" id="oppEmoji">🐉</span>
+            <span class="hero-name" id="oppName">Warden</span>
+            <span class="hp-pill"><span class="heart">❤️</span> <b id="oppHp">20</b></span>
+            <span class="mana-pill"><span class="gem">💎</span> <b id="oppMana">0</b>/<span id="oppManaMax">0</span></span>
+            <span class="deck-pill">🂠 <b id="oppDeck">0</b></span>
+          </div>
+          <div class="board-row" id="oppBoard"></div>
+        </div>
+
+        <div class="middle-band">
+          <div class="turn-indicator" id="turnIndicator">Your Turn</div>
+          <button id="endTurnBtn" class="end-turn-btn">End Turn</button>
+        </div>
+
+        <div class="player-area you" id="youArea">
+          <div class="board-row" id="youBoard"></div>
+          <div class="player-info">
+            <span class="hero-emoji">🦊</span>
+            <span class="hero-name">You</span>
+            <span class="hp-pill"><span class="heart">❤️</span> <b id="youHp">20</b></span>
+            <span class="mana-pill"><span class="gem">💎</span> <b id="youMana">0</b>/<span id="youManaMax">0</span></span>
+            <span class="deck-pill">🂠 <b id="youDeck">0</b></span>
+          </div>
+          <div class="hand-row" id="youHand"></div>
+        </div>
+      </div>
+      <div id="battleLog" class="battle-log"></div>
+    </section>
+
+    <!-- Battle Result -->
+    <section id="resultScreen" class="screen">
+      <div class="result-card">
+        <h2 id="resultTitle">Victory!</h2>
+        <div id="resultDetails" class="result-details"></div>
+        <div class="result-actions">
+          <button class="primary-btn" id="resultContinueBtn">Continue</button>
+          <button class="secondary-btn" id="resultRetryBtn">Try Again</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Collection -->
+    <section id="collectionScreen" class="screen">
+      <h2 class="screen-title">🎴 Your Collection</h2>
+      <div class="collection-filters">
+        <button class="filter-btn active" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="fire">🔥 Fire</button>
+        <button class="filter-btn" data-filter="water">💧 Water</button>
+        <button class="filter-btn" data-filter="earth">🌿 Earth</button>
+        <button class="filter-btn" data-filter="air">💨 Air</button>
+        <button class="filter-btn" data-filter="spirit">✨ Spirit</button>
+        <button class="filter-btn" data-filter="neutral">⚪ Neutral</button>
+      </div>
+      <div id="collectionGrid" class="card-grid"></div>
+    </section>
+
+    <!-- Deck Builder -->
+    <section id="deckScreen" class="screen">
+      <h2 class="screen-title">🛠️ Deck Builder</h2>
+      <div class="deck-status">
+        Deck: <b id="deckSize">0</b>/30 &nbsp;
+        <button class="secondary-btn small" id="deckClearBtn">Clear</button>
+        <button class="secondary-btn small" id="deckAutoBtn">Auto-Fill</button>
+      </div>
+      <div class="deck-split">
+        <div class="deck-side">
+          <h3>Available</h3>
+          <div id="deckAvailable" class="card-grid small"></div>
+        </div>
+        <div class="deck-side">
+          <h3>In Deck</h3>
+          <div id="deckInDeck" class="card-grid small"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Pack Opening -->
+    <section id="packScreen" class="screen">
+      <div class="pack-card">
+        <h2 id="packTitle">📦 Open Pack</h2>
+        <p id="packIntro">Solve 3 quick puzzles. The better you do, the rarer the cards!</p>
+        <div id="packStatus" class="pack-status"></div>
+        <div id="packReveal" class="pack-reveal"></div>
+        <button class="primary-btn" id="packStartBtn">Start</button>
+        <button class="primary-btn hidden" id="packDoneBtn">Take Cards</button>
+      </div>
+    </section>
+
+    <!-- Trader -->
+    <section id="tradeScreen" class="screen">
+      <div class="trade-card">
+        <h2>🤝 Mira's Trading Post</h2>
+        <p class="trader-quote" id="traderQuote">"Solve my riddle and I'll trade with you!"</p>
+        <div id="tradeContent"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Puzzle Modal (overlay) -->
+  <div id="puzzleModal" class="puzzle-modal hidden">
+    <div class="puzzle-card">
+      <div class="puzzle-context" id="puzzleContext">Math Card</div>
+      <div class="puzzle-question" id="puzzleQuestion">2 + 2 = ?</div>
+      <div class="puzzle-choices" id="puzzleChoices"></div>
+      <div class="puzzle-explain hidden" id="puzzleExplain"></div>
+      <button class="text-btn" id="puzzleCancelBtn">Cancel (refund mana)</button>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast hidden"></div>
+</div>
+
+<script src="art.js"></script>
+<script src="engine.js"></script>
+<script src="puzzles.js"></script>
+<script src="cards.js"></script>
+<script src="deck.js"></script>
+<script src="effects.js"></script>
+<script src="ai.js"></script>
+<script src="battle.js"></script>
+<script src="packs.js"></script>
+<script src="npc.js"></script>
+<script src="campaign.js"></script>
+<script src="collection.js"></script>
+<script src="game.js"></script>
+</body>
+</html>
