@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 <title>CardQuest</title>
 <link rel="stylesheet" href="styles.css" />
+<link rel="stylesheet" href="enhanced.css" />
 </head>
 <body>
 <div id="app">
@@ -43,6 +44,7 @@
           <li>🧮 <b>Math Cards</b> let you solve a puzzle to power up the effect — right answer = full power, wrong = half.</li>
           <li>🌪️ <b>Element wheel:</b> Fire → Air → Earth → Water → Spirit → Fire. Beat the next element for +1 damage!</li>
           <li>📦 <b>Packs:</b> Win battles to earn packs. Solve 3 puzzles to open them — the better you do, the rarer the cards.</li>
+          <li>🛒 <b>Shop:</b> Spend your gold on specific cards you want.</li>
         </ol>
         <button class="primary-btn" id="howToCloseBtn">Got it!</button>
       </div>
@@ -57,6 +59,7 @@
       <div class="map-actions">
         <button class="secondary-btn" id="goCollectionBtn">🎴 Collection</button>
         <button class="secondary-btn" id="goDeckBtn">🛠️ Deck Builder</button>
+        <button class="secondary-btn" id="goShopBtn">🛒 Shop</button>
         <button class="secondary-btn" id="goTradeBtn">🤝 Trader</button>
       </div>
     </section>
@@ -64,13 +67,17 @@
     <!-- Battle -->
     <section id="battleScreen" class="screen">
       <div class="battle-board">
+        <!-- Opponent area: portrait + board + hand-of-card-backs -->
         <div class="player-area opponent" id="oppArea">
-          <div class="player-info">
-            <span class="hero-emoji" id="oppEmoji">🐉</span>
-            <span class="hero-name" id="oppName">Warden</span>
-            <span class="hp-pill"><span class="heart">❤️</span> <b id="oppHp">20</b></span>
-            <span class="mana-pill"><span class="gem">💎</span> <b id="oppMana">0</b>/<span id="oppManaMax">0</span></span>
-            <span class="deck-pill">🂠 <b id="oppDeck">0</b></span>
+          <div class="opp-row">
+            <div class="hero-portrait" id="oppPortrait"></div>
+            <div class="hero-meta">
+              <div class="hero-name" id="oppName">Warden</div>
+              <div class="hp-text">❤️ <b id="oppHp">20</b>/<span id="oppMaxHp">20</span></div>
+              <div class="mana-row" id="oppManaCrystals"></div>
+              <div class="deck-pill">🂠 <b id="oppDeck">0</b> · ✋ <b id="oppHandCount">0</b></div>
+            </div>
+            <div class="opp-hand" id="oppHand"></div>
           </div>
           <div class="board-row" id="oppBoard"></div>
         </div>
@@ -80,19 +87,23 @@
           <button id="endTurnBtn" class="end-turn-btn">End Turn</button>
         </div>
 
+        <!-- Your area: board + hand + portrait -->
         <div class="player-area you" id="youArea">
           <div class="board-row" id="youBoard"></div>
-          <div class="player-info">
-            <span class="hero-emoji">🦊</span>
-            <span class="hero-name">You</span>
-            <span class="hp-pill"><span class="heart">❤️</span> <b id="youHp">20</b></span>
-            <span class="mana-pill"><span class="gem">💎</span> <b id="youMana">0</b>/<span id="youManaMax">0</span></span>
-            <span class="deck-pill">🂠 <b id="youDeck">0</b></span>
+          <div class="you-row">
+            <div class="hero-portrait you" id="youPortrait"></div>
+            <div class="hero-meta">
+              <div class="hero-name">You 🦊</div>
+              <div class="hp-text">❤️ <b id="youHp">20</b>/<span id="youMaxHp">20</span></div>
+              <div class="mana-row" id="youManaCrystals"></div>
+              <div class="deck-pill">🂠 <b id="youDeck">0</b></div>
+            </div>
           </div>
           <div class="hand-row" id="youHand"></div>
         </div>
       </div>
       <div id="battleLog" class="battle-log"></div>
+      <div id="floatingDamage" class="floating-damage-layer"></div>
     </section>
 
     <!-- Battle Result -->
@@ -142,6 +153,20 @@
       </div>
     </section>
 
+    <!-- Shop -->
+    <section id="shopScreen" class="screen">
+      <h2 class="screen-title">🛒 Card Shop</h2>
+      <p class="shop-intro">Spend your gold on specific cards. Stock refreshes after every battle.</p>
+      <div class="shop-filters">
+        <button class="filter-btn active" data-shop-filter="all">All</button>
+        <button class="filter-btn" data-shop-filter="common">⚪ Common</button>
+        <button class="filter-btn" data-shop-filter="uncommon">🟢 Uncommon</button>
+        <button class="filter-btn" data-shop-filter="rare">🔵 Rare</button>
+        <button class="filter-btn" data-shop-filter="epic">🟣 Epic</button>
+      </div>
+      <div id="shopGrid" class="shop-grid"></div>
+    </section>
+
     <!-- Pack Opening -->
     <section id="packScreen" class="screen">
       <div class="pack-card">
@@ -189,6 +214,7 @@
 <script src="battle.js"></script>
 <script src="packs.js"></script>
 <script src="npc.js"></script>
+<script src="shop.js"></script>
 <script src="campaign.js"></script>
 <script src="collection.js"></script>
 <script src="game.js"></script>

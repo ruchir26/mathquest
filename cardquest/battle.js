@@ -1,10 +1,12 @@
-// CardQuest — battle state machine + UI
+// CardQuest — battle state machine + animated UI
 
 const BATTLE = {
   state: null,
-  pendingMath: null,    // { card, target, resolve }
-  pendingTarget: null,  // { card, resolve, validKinds }
+  pendingMath: null,
+  pendingTarget: null,
   log: [],
+  selectedAttacker: null,
+  prevHp: { you: 20, opp: 20 },
 };
 
 function startBattle(playerDeck, oppDeckIds, opponentMeta) {
@@ -16,27 +18,24 @@ function startBattle(playerDeck, oppDeckIds, opponentMeta) {
   drawCards(oppLib, oppHand, 4);
 
   BATTLE.state = {
-    activePlayer: 0,    // 0 = you, 1 = opponent
+    activePlayer: 0,
     turn: 1,
     phase: 'MAIN',
     winner: null,
     players: [
-      {
-        name: 'You', emoji: '🦊', isYou: true,
-        hp: 20, maxHp: 20,
-        mana: 1, manaMax: 1,
-        library: youLib, hand: youHand, board: [],
-      },
-      {
-        name: opponentMeta.name, emoji: opponentMeta.emoji, isYou: false,
+      { name: 'You', emoji: '🦊', isYou: true,
+        hp: 20, maxHp: 20, mana: 1, manaMax: 1,
+        library: youLib, hand: youHand, board: [] },
+      { name: opponentMeta.name, emoji: opponentMeta.emoji, isYou: false,
         hp: opponentMeta.hp || 20, maxHp: opponentMeta.hp || 20,
         mana: opponentMeta.startMana || 0, manaMax: opponentMeta.startMana || 0,
-        library: oppLib, hand: oppHand, board: opponentMeta.startBoard || [],
-      },
+        library: oppLib, hand: oppHand, board: opponentMeta.startBoard || [] },
     ],
     opponentMeta,
   };
   BATTLE.log = [`⚔️ Battle vs ${opponentMeta.name} begins.`];
+  BATTLE.prevHp = { you: 20, opp: opponentMeta.hp || 20 };
+  BATTLE.selectedAttacker = null;
   renderBattle();
 }
 
@@ -46,12 +45,10 @@ function logBattle(text) {
 }
 
 function endTurn() {
-  if (BATTLE.state.winner) return;
-  if (BATTLE.pendingMath || BATTLE.pendingTarget) return;
+  if (BATTLE.state.winner || BATTLE.pendingMath || BATTLE.pendingTarget) return;
   const s = BATTLE.state;
   s.activePlayer = 1 - s.activePlayer;
   if (s.activePlayer === 0) s.turn += 1;
-  // DRAW + MANA
   const cur = s.players[s.activePlayer];
   cur.manaMax = Math.min(10, cur.manaMax + 1);
   cur.mana = cur.manaMax;
@@ -63,7 +60,7 @@ function endTurn() {
   const drawn = drawCards(cur.library, cur.hand, 1);
   if (drawn[0] && drawn[0].fatigue) {
     cur.hp -= 1;
-    logBattle(`💀 ${cur.name} has no cards — fatigue 1 damage.`);
+    logBattle(`💀 ${cur.name} fatigue 1 damage.`);
   }
   s.phase = 'MAIN';
   checkWin();
@@ -84,21 +81,18 @@ function runOpponentTurn() {
     const act = actions[i++];
     if (act.type === 'log') logBattle(act.text);
     else if (act.type === 'play') aiPlayCard(act.card, act.target);
-    else if (act.type === 'attack') resolveAttack(act.attacker, act.target);
-    else if (act.type === 'end') { renderBattle(); setTimeout(endTurn, 500); return; }
+    else if (act.type === 'attack') resolveAttack(act.attacker, act.target, true);
+    else if (act.type === 'end') { renderBattle(); setTimeout(endTurn, 600); return; }
     checkWin();
     renderBattle();
-    setTimeout(step, 500);
+    setTimeout(step, 650);
   }
   step();
 }
 
 function aiPlayCard(card, target) {
   const me = BATTLE.state.players[BATTLE.state.activePlayer];
-  // Card was already removed from hand & mana paid in ai.js simulation,
-  // but we need to actually apply effects now.
   if (card.def.type === 'creature') {
-    // already pushed to board in ai.js
     card.attacksRemaining = (card.keywords || []).includes('rush') ? 1 : 0;
     logBattle(`🎴 ${me.name} plays ${card.def.name}.`);
   } else if (card.def.type === 'spell') {
@@ -108,7 +102,6 @@ function aiPlayCard(card, target) {
       logBattle(r.logs);
     });
   } else if (card.def.type === 'math') {
-    // AI auto-grades
     const aiCorrect = Math.random() < 0.8;
     const sc = card.def.puzzle.scaling;
     const fakeAns = Math.min(sc.cap || 6, 4 + Math.floor(Math.random() * 4));
@@ -124,29 +117,37 @@ function youPlayCard(card, target) {
   if (BATTLE.state.activePlayer !== 0) return;
   if (card.def.cost > you.mana) { showToast('Not enough mana.'); return; }
 
-  // Spend mana up-front; refund only if math is cancelled
-  you.mana -= card.def.cost;
-  const idx = you.hand.indexOf(card);
-  if (idx >= 0) you.hand.splice(idx, 1);
-
-  if (card.def.type === 'creature') {
-    if (you.board.length >= 7) {
-      // refund
-      you.mana += card.def.cost;
-      you.hand.splice(idx, 0, card);
-      showToast('Board full.');
-      return;
-    }
-    card.attacksRemaining = (card.keywords || []).includes('rush') ? 1 : 0;
-    you.board.push(card);
-    logBattle(`🎴 You play ${card.def.name}.`);
-    renderBattle();
-    checkWin();
-  } else if (card.def.type === 'spell') {
-    castSpellEffects(card, target);
-  } else if (card.def.type === 'math') {
-    openPuzzleForCard(card, target);
+  // Animate the played card from hand
+  const handIdx = you.hand.indexOf(card);
+  const handEl = document.querySelector(`.hand-card[data-idx="${handIdx}"]`);
+  if (handEl) {
+    handEl.classList.add('played');
   }
+
+  setTimeout(() => {
+    you.mana -= card.def.cost;
+    const idx = you.hand.indexOf(card);
+    if (idx >= 0) you.hand.splice(idx, 1);
+
+    if (card.def.type === 'creature') {
+      if (you.board.length >= 7) {
+        you.mana += card.def.cost;
+        you.hand.push(card);
+        showToast('Board full.');
+        renderBattle();
+        return;
+      }
+      card.attacksRemaining = (card.keywords || []).includes('rush') ? 1 : 0;
+      you.board.push(card);
+      logBattle(`🎴 You play ${card.def.name}.`);
+      renderBattle();
+      checkWin();
+    } else if (card.def.type === 'spell') {
+      castSpellEffects(card, target);
+    } else if (card.def.type === 'math') {
+      openPuzzleForCard(card, target);
+    }
+  }, handEl ? 350 : 0);
 }
 
 function castSpellEffects(card, target) {
@@ -165,7 +166,6 @@ function openPuzzleForCard(card, target) {
   showPuzzleModal(puzzle, `${card.def.name} — solve to power up!`, (choice) => {
     closePuzzleModal();
     if (choice === null) {
-      // cancel: refund mana, return card to hand
       const you = BATTLE.state.players[0];
       you.mana += card.def.cost;
       you.hand.push(card);
@@ -179,7 +179,7 @@ function openPuzzleForCard(card, target) {
     const cap = sc.cap || 99;
     const baseAmount = Math.min(cap, puzzle.answer);
     const amount = result.correct ? baseAmount : Math.floor(baseAmount / 2);
-    logBattle(`🧮 ${card.def.name}: ${result.correct ? 'right' : 'half'} → ${amount}.`);
+    logBattle(`🧮 ${card.def.name}: ${result.correct ? '✓ right' : '½ half'} → ${amount}.`);
     const r = applyEffect(BATTLE.state, { id: sc.effect, target: sc.target }, card, target, { amountOverride: amount });
     logBattle(r.logs);
     BATTLE.pendingMath = null;
@@ -189,24 +189,97 @@ function openPuzzleForCard(card, target) {
   });
 }
 
-function resolveAttack(attacker, target) {
+function resolveAttack(attacker, target, isOpponent = false) {
   if (!attacker || attacker.attacksRemaining <= 0 || attacker.summoningSick || attacker.frozen) return;
+
+  // Animate attacker lunge
+  const atkEl = document.querySelector(`.board-card[data-uid="${attacker.uid}"]`);
+  if (atkEl) atkEl.classList.add(isOpponent ? 'attacking-down' : 'attacking-up');
+
   if (target.kind === 'hero') {
     const dmg = attacker.attack + elementBonus(attacker.def.element, 'neutral');
     target.player.hp -= dmg;
     logBattle(`⚔️ ${attacker.def.name} hits ${target.player.name} for ${dmg}.`);
+    floatNumberAtHero(target.player.isYou ? 'you' : 'opp', dmg, 'damage');
+    flashHero(target.player.isYou ? 'you' : 'opp');
   } else if (target.kind === 'creature') {
     const c = target.creature;
     const dmgToC = attacker.attack + elementBonus(attacker.def.element, c.def.element);
     const dmgBack = c.attack + elementBonus(c.def.element, attacker.def.element);
     c.hp -= dmgToC;
     attacker.hp -= dmgBack;
-    logBattle(`⚔️ ${attacker.def.name} attacks ${c.def.name} (${dmgToC}/${dmgBack}).`);
-    if (c.hp <= 0) { removeCreature(BATTLE.state, c); logBattle(`☠️ ${c.def.name} destroyed.`); }
-    if (attacker.hp <= 0) { removeCreature(BATTLE.state, attacker); logBattle(`☠️ ${attacker.def.name} destroyed.`); }
+    logBattle(`⚔️ ${attacker.def.name} ⇄ ${c.def.name} (${dmgToC}/${dmgBack}).`);
+    flashCard(c.uid);
+    if (dmgBack > 0) flashCard(attacker.uid);
+    floatNumberAtCard(c.uid, dmgToC, 'damage');
+    if (dmgBack > 0) floatNumberAtCard(attacker.uid, dmgBack, 'damage');
+    if (c.hp <= 0) { animateDeath(c); }
+    if (attacker.hp <= 0) { animateDeath(attacker); }
   }
   attacker.attacksRemaining -= 1;
-  checkWin();
+
+  setTimeout(() => {
+    // Actually remove dead creatures from state after animation
+    BATTLE.state.players.forEach(p => {
+      p.board = p.board.filter(c => c.hp > 0);
+    });
+    renderBattle();
+    checkWin();
+  }, 600);
+}
+
+function animateDeath(creature) {
+  const el = document.querySelector(`.board-card[data-uid="${creature.uid}"]`);
+  if (el) {
+    el.classList.add('dying');
+    setTimeout(() => {}, 600);
+  }
+  logBattle(`☠️ ${creature.def.name} destroyed.`);
+}
+
+function flashCard(uid) {
+  const el = document.querySelector(`.board-card[data-uid="${uid}"]`);
+  if (el) {
+    el.classList.add('damaged');
+    setTimeout(() => el.classList.remove('damaged'), 400);
+  }
+}
+function flashHero(side) {
+  const el = document.getElementById(side === 'you' ? 'youPortrait' : 'oppPortrait');
+  if (el) {
+    el.classList.add('damaged');
+    setTimeout(() => el.classList.remove('damaged'), 400);
+  }
+}
+
+function floatNumberAtHero(side, n, kind) {
+  const portrait = document.getElementById(side === 'you' ? 'youPortrait' : 'oppPortrait');
+  const layer = document.getElementById('floatingDamage');
+  if (!portrait || !layer) return;
+  const r = portrait.getBoundingClientRect();
+  const lr = layer.getBoundingClientRect();
+  const x = r.left + r.width / 2 - lr.left;
+  const y = r.top + r.height / 2 - lr.top;
+  spawnFloat(layer, x, y, n, kind);
+}
+function floatNumberAtCard(uid, n, kind) {
+  const card = document.querySelector(`.board-card[data-uid="${uid}"]`);
+  const layer = document.getElementById('floatingDamage');
+  if (!card || !layer) return;
+  const r = card.getBoundingClientRect();
+  const lr = layer.getBoundingClientRect();
+  const x = r.left + r.width / 2 - lr.left;
+  const y = r.top + r.height / 2 - lr.top;
+  spawnFloat(layer, x, y, n, kind);
+}
+function spawnFloat(layer, x, y, n, kind) {
+  const el = document.createElement('div');
+  el.className = 'float-num ' + (kind || 'damage');
+  el.style.left = x + 'px';
+  el.style.top = y + 'px';
+  el.textContent = (kind === 'heal' ? '+' : '-') + n;
+  layer.appendChild(el);
+  setTimeout(() => el.remove(), 1200);
 }
 
 function checkWin() {
@@ -216,40 +289,56 @@ function checkWin() {
   else if (opp.hp <= 0) BATTLE.state.winner = 'you';
   else if (you.hp <= 0) BATTLE.state.winner = 'opp';
   if (BATTLE.state.winner) {
-    setTimeout(() => onBattleEnd(BATTLE.state.winner), 600);
+    setTimeout(() => onBattleEnd(BATTLE.state.winner), 800);
   }
 }
 
-// ===== UI rendering =====
+// ===== UI =====
 
 function renderBattle() {
   if (!BATTLE.state) return;
   const s = BATTLE.state;
   const [you, opp] = s.players;
 
-  document.getElementById('youHp').textContent = you.hp;
-  document.getElementById('youMana').textContent = you.mana;
-  document.getElementById('youManaMax').textContent = you.manaMax;
+  // HP numbers
+  document.getElementById('youHp').textContent = Math.max(0, you.hp);
+  document.getElementById('youMaxHp').textContent = you.maxHp;
   document.getElementById('youDeck').textContent = you.library.length;
-  document.getElementById('oppHp').textContent = opp.hp;
-  document.getElementById('oppMana').textContent = opp.mana;
-  document.getElementById('oppManaMax').textContent = opp.manaMax;
+  document.getElementById('oppHp').textContent = Math.max(0, opp.hp);
+  document.getElementById('oppMaxHp').textContent = opp.maxHp;
   document.getElementById('oppDeck').textContent = opp.library.length;
+  document.getElementById('oppHandCount').textContent = opp.hand.length;
   document.getElementById('oppName').textContent = opp.name;
-  document.getElementById('oppEmoji').textContent = opp.emoji;
+
+  // Portraits (blood-fill)
+  document.getElementById('youPortrait').innerHTML = heroPortraitSvg('you', you.hp, you.maxHp, '🦊');
+  document.getElementById('oppPortrait').innerHTML = heroPortraitSvg('opp', opp.hp, opp.maxHp, opp.emoji);
+
+  // Floating damage from HP delta
+  const youDelta = BATTLE.prevHp.you - you.hp;
+  const oppDelta = BATTLE.prevHp.opp - opp.hp;
+  if (youDelta > 0) floatNumberAtHero('you', youDelta, 'damage');
+  if (oppDelta > 0) floatNumberAtHero('opp', oppDelta, 'damage');
+  if (youDelta < 0) floatNumberAtHero('you', -youDelta, 'heal');
+  if (oppDelta < 0) floatNumberAtHero('opp', -oppDelta, 'heal');
+  BATTLE.prevHp = { you: you.hp, opp: opp.hp };
+
+  // Mana crystals
+  document.getElementById('youManaCrystals').innerHTML = manaCrystalsHtml(you.mana, you.manaMax);
+  document.getElementById('oppManaCrystals').innerHTML = manaCrystalsHtml(opp.mana, opp.manaMax);
+
+  // Opp hand of card-backs
+  const oppHandEl = document.getElementById('oppHand');
+  oppHandEl.innerHTML = opp.hand.map(() => `<div class="card-back">${cardBackSvg()}</div>`).join('');
 
   document.getElementById('turnIndicator').textContent =
     s.activePlayer === 0 ? `Your Turn (${s.turn})` : `Enemy Turn (${s.turn})`;
   document.getElementById('endTurnBtn').disabled = s.activePlayer !== 0 || !!BATTLE.pendingMath || !!BATTLE.pendingTarget;
 
-  // Boards
   renderBoardRow('youBoard', you.board, 'you');
   renderBoardRow('oppBoard', opp.board, 'opp');
-
-  // Hand (your cards face up)
   renderHand(you.hand);
 
-  // Log
   const logEl = document.getElementById('battleLog');
   logEl.innerHTML = BATTLE.log.slice(-10).map(l => `<div>${l}</div>`).join('');
   logEl.scrollTop = logEl.scrollHeight;
@@ -262,13 +351,13 @@ function renderBoardRow(elId, board, side) {
     const sick = c.summoningSick ? ' sick' : '';
     const frozen = c.frozen ? ' frozen' : '';
     const ready = (!c.summoningSick && !c.frozen && c.attacksRemaining > 0 && side === 'you') ? ' ready' : '';
-    return `<div class="board-card element-${c.def.element}${sick}${frozen}${ready}" data-uid="${c.uid}" data-side="${side}">
+    const sel = (BATTLE.selectedAttacker && BATTLE.selectedAttacker.uid === c.uid) ? ' selected' : '';
+    return `<div class="board-card element-${c.def.element} rarity-${c.def.rarity || 'common'}${sick}${frozen}${ready}${sel}" data-uid="${c.uid}" data-side="${side}">
       <div class="bc-art">${cardArtSvg(c.def.art, c.def.element)}</div>
       <div class="bc-name">${c.def.name}</div>
       <div class="bc-stats"><span class="atk">⚔ ${c.attack}</span><span class="hp">❤ ${c.hp}/${c.maxHp}</span></div>
     </div>`;
   }).join('');
-  // wire clicks
   el.querySelectorAll('.board-card').forEach(node => {
     node.onclick = () => onBoardCardClick(parseInt(node.dataset.uid), node.dataset.side);
   });
@@ -280,7 +369,7 @@ function renderHand(hand) {
   const you = BATTLE.state.players[0];
   el.innerHTML = hand.map((c, idx) => {
     const playable = c.def.cost <= you.mana && BATTLE.state.activePlayer === 0;
-    return `<div class="hand-card element-${c.def.element} rarity-${c.def.rarity}${playable ? ' playable' : ''}" data-idx="${idx}">
+    return `<div class="hand-card element-${c.def.element} rarity-${c.def.rarity}${playable ? ' playable' : ''}" data-idx="${idx}" style="animation-delay:${idx*0.05}s">
       <div class="hc-cost">${c.def.cost}</div>
       <div class="hc-art">${cardArtSvg(c.def.art, c.def.element)}</div>
       <div class="hc-name">${c.def.name}</div>
@@ -303,11 +392,14 @@ function onHandCardClick(card) {
   if (card.def.type === 'creature') {
     youPlayCard(card, null);
   } else {
-    // need a target for damage / freeze / buff
     const needsTarget = needsTargetForCard(card);
     if (needsTarget) {
       BATTLE.pendingTarget = { card, kinds: needsTarget };
       showToast(`Pick a target for ${card.def.name}`);
+      // highlight enemy hero if possible target
+      if (needsTarget.includes('hero')) {
+        document.getElementById('oppPortrait').classList.add('targetable');
+      }
       renderBattle();
     } else {
       youPlayCard(card, null);
@@ -317,7 +409,6 @@ function onHandCardClick(card) {
 
 function needsTargetForCard(card) {
   if (card.def.type === 'math') {
-    // many math cards target hero (heal_hero / draw / damage_all): only deal_damage needs target
     const sc = card.def.puzzle && card.def.puzzle.scaling;
     if (sc && sc.effect === 'deal_damage') return ['hero', 'creature'];
     return null;
@@ -334,7 +425,6 @@ function needsTargetForCard(card) {
 
 function onBoardCardClick(uid, side) {
   if (BATTLE.state.activePlayer !== 0) return;
-  // If we're picking a target for a hand card
   if (BATTLE.pendingTarget) {
     const t = findTargetByUid(uid);
     if (!t) return;
@@ -345,24 +435,23 @@ function onBoardCardClick(uid, side) {
     if (wantSide && side !== wantSide) { showToast('Wrong side.'); return; }
     const card = BATTLE.pendingTarget.card;
     BATTLE.pendingTarget = null;
+    document.getElementById('oppPortrait').classList.remove('targetable');
     youPlayCard(card, { kind: 'creature', creature: t });
     return;
   }
-  // Otherwise: declare attack with a friendly creature
   if (side !== 'you') {
     if (BATTLE.selectedAttacker) {
-      // attacker hits this enemy creature
       const target = findTargetByUid(uid);
       if (target) {
-        // enforce taunt
         const enemyTaunts = BATTLE.state.players[1].board.filter(c => (c.keywords||[]).includes('taunt'));
         if (enemyTaunts.length && !enemyTaunts.includes(target)) {
           showToast('Must attack taunt first.');
           return;
         }
-        resolveAttack(BATTLE.selectedAttacker, { kind: 'creature', creature: target });
+        const atk = BATTLE.selectedAttacker;
         BATTLE.selectedAttacker = null;
-        renderBattle();
+        document.getElementById('oppPortrait').classList.remove('targetable');
+        resolveAttack(atk, { kind: 'creature', creature: target }, false);
       }
     }
     return;
@@ -372,8 +461,8 @@ function onBoardCardClick(uid, side) {
   if (c.summoningSick || c.frozen || c.attacksRemaining <= 0) { showToast('Can\'t attack now.'); return; }
   BATTLE.selectedAttacker = c;
   showToast(`${c.def.name} ready — click enemy.`);
-  // Allow attack on enemy hero
-  highlightEnemyHero();
+  document.getElementById('oppPortrait').classList.add('targetable');
+  renderBattle();
 }
 
 function findTargetByUid(uid) {
@@ -384,21 +473,15 @@ function findTargetByUid(uid) {
   return null;
 }
 
-function highlightEnemyHero() {
-  const heroEl = document.querySelector('#oppArea .player-info');
-  if (heroEl) heroEl.classList.add('targetable');
-}
-
-// Click on opp hero (wired in game.js)
 function attackEnemyHero() {
   if (!BATTLE.selectedAttacker) return;
   const enemyTaunts = BATTLE.state.players[1].board.filter(c => (c.keywords||[]).includes('taunt'));
   if (enemyTaunts.length) { showToast('Must attack taunt first.'); return; }
   const opp = BATTLE.state.players[1];
-  resolveAttack(BATTLE.selectedAttacker, { kind: 'hero', player: opp });
+  const atk = BATTLE.selectedAttacker;
   BATTLE.selectedAttacker = null;
-  document.querySelector('#oppArea .player-info')?.classList.remove('targetable');
-  renderBattle();
+  document.getElementById('oppPortrait').classList.remove('targetable');
+  resolveAttack(atk, { kind: 'hero', player: opp }, false);
 }
 
 function attackPlayerHeroAsTarget() {
@@ -406,6 +489,7 @@ function attackPlayerHeroAsTarget() {
   if (!BATTLE.pendingTarget.kinds.includes('hero')) return false;
   const card = BATTLE.pendingTarget.card;
   BATTLE.pendingTarget = null;
+  document.getElementById('oppPortrait').classList.remove('targetable');
   youPlayCard(card, { kind: 'hero', player: BATTLE.state.players[1] });
   return true;
 }
@@ -413,10 +497,11 @@ function attackPlayerHeroAsTarget() {
 function onBattleEnd(winner) {
   GAME.lastBattleResult = winner;
   if (winner === 'you') {
-    GAME.profile.gold += 5;
+    GAME.profile.gold += 15;
     GAME.profile.packs += 1;
     saveProfile(GAME.profile);
     refreshHud();
+    refreshShopStock(); // shop refreshes after every battle
     showResult(true, BATTLE.state.opponentMeta);
   } else {
     showResult(false, BATTLE.state.opponentMeta);

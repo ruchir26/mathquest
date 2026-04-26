@@ -6,7 +6,7 @@ const GAME = {
   lastBattleResult: null,
 };
 
-const SCREENS = ['titleScreen','howToScreen','mapScreen','battleScreen','resultScreen','collectionScreen','deckScreen','packScreen','tradeScreen'];
+const SCREENS = ['titleScreen','howToScreen','mapScreen','battleScreen','resultScreen','collectionScreen','deckScreen','shopScreen','packScreen','tradeScreen'];
 
 function showScreen(id) {
   SCREENS.forEach(s => {
@@ -23,6 +23,7 @@ function showScreen(id) {
   if (id === 'mapScreen') renderZones();
   if (id === 'collectionScreen') renderCollection();
   if (id === 'deckScreen') renderDeck();
+  if (id === 'shopScreen') renderShop();
   if (id === 'packScreen') {
     document.getElementById('packStartBtn').classList.toggle('hidden', GAME.profile.packs <= 0);
     document.getElementById('packDoneBtn').classList.add('hidden');
@@ -35,7 +36,7 @@ function showScreen(id) {
   const titles = {
     mapScreen: '🗺️ The Realms', battleScreen: '⚔️ Battle', resultScreen: '🏁 Result',
     collectionScreen: '🎴 Collection', deckScreen: '🛠️ Deck Builder',
-    packScreen: '📦 Open Pack', tradeScreen: '🤝 Trader',
+    shopScreen: '🛒 Shop', packScreen: '📦 Open Pack', tradeScreen: '🤝 Trader',
   };
   document.getElementById('hudTitle').textContent = titles[id] || 'CardQuest';
 }
@@ -92,7 +93,7 @@ function showResult(won, opponentMeta) {
     recordEncounterWin();
     html = `
       <p>You defeated <b>${opponentMeta.name}</b>!</p>
-      <p class="reward-line">+5 🪙 gold · +1 📦 pack</p>
+      <p class="reward-line">+15 🪙 gold · +1 📦 pack · 🛒 shop refreshed</p>
     `;
   } else {
     html = `
@@ -118,6 +119,8 @@ document.addEventListener('DOMContentLoaded', () => {
   refreshHud();
   setupCollectionFilters();
   setupDeckButtons();
+  setupShopFilters();
+  refreshShopStock();
 
   document.getElementById('playBtn').onclick = () => showScreen('mapScreen');
   document.getElementById('howToBtn').onclick = () => showScreen('howToScreen');
@@ -130,7 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (cur === 'battleScreen') {
       if (confirm('Forfeit this battle?')) { showScreen('mapScreen'); }
     } else if (cur === 'resultScreen') showScreen('mapScreen');
-    else if (cur === 'collectionScreen' || cur === 'deckScreen' || cur === 'packScreen' || cur === 'tradeScreen') showScreen('mapScreen');
+    else if (cur === 'collectionScreen' || cur === 'deckScreen' || cur === 'shopScreen' || cur === 'packScreen' || cur === 'tradeScreen') showScreen('mapScreen');
     else showScreen('titleScreen');
   };
 
@@ -145,14 +148,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.getElementById('goCollectionBtn').onclick = () => showScreen('collectionScreen');
   document.getElementById('goDeckBtn').onclick = () => showScreen('deckScreen');
+  document.getElementById('goShopBtn').onclick = () => openShop();
   document.getElementById('goTradeBtn').onclick = () => openTrader();
 
   document.getElementById('packStartBtn').onclick = () => startPackOpen();
   document.getElementById('packDoneBtn').onclick = () => showScreen('mapScreen');
 
-  // Click on opp hero info = attack target / spell target
+  // Click on opp portrait = attack target / spell target
   document.getElementById('oppArea').addEventListener('click', (ev) => {
     if (ev.target.closest('.board-card')) return;
+    if (ev.target.closest('.opp-hand')) return;
     if (BATTLE.pendingTarget) { attackPlayerHeroAsTarget(); return; }
     if (BATTLE.selectedAttacker) attackEnemyHero();
   });
