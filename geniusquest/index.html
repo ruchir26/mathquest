@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"/>
+<title>GeniusQuest: Trainer's Path</title>
+<link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+<div id="app">
+
+  <!-- HUD bar (hidden on welcome) -->
+  <header id="hud" class="hud hidden">
+    <button id="homeBtn" class="hud-btn" title="Home">🏠</button>
+    <div class="hud-mid">
+      <div class="trainer-info">
+        <span id="trainerTitle" class="trainer-title">Rookie</span>
+        <div class="xp-bar"><div id="xpFill" class="xp-fill"></div></div>
+      </div>
+    </div>
+    <div class="hud-right">
+      <span class="hud-stat">₽ <b id="pokecoins">0</b></span>
+      <span class="hud-stat">📜 <b id="dexCount">0</b></span>
+      <button id="collectionBtn" class="hud-btn" title="Pokédex">📖</button>
+      <button id="parentBtn"     class="hud-btn" title="Parent dashboard">👤</button>
+    </div>
+  </header>
+
+  <main id="screens">
+
+    <!-- WELCOME -->
+    <section id="welcomeScreen" class="screen active">
+      <div class="welcome-card">
+        <div class="welcome-logo">
+          <svg viewBox="0 0 100 100" width="110" height="110" aria-hidden="true">
+            <circle cx="50" cy="50" r="46" fill="#cc0000" stroke="#fff" stroke-width="4"/>
+            <rect x="4" y="44" width="92" height="12" fill="#fff"/>
+            <circle cx="50" cy="50" r="14" fill="#fff" stroke="#333" stroke-width="3"/>
+            <circle cx="50" cy="50" r="8" fill="#333"/>
+            <circle cx="53" cy="47" r="3" fill="#fff"/>
+          </svg>
+        </div>
+        <h1>GeniusQuest</h1>
+        <p class="tagline">Trainer's Path · Ages 6+</p>
+        <p class="lore">Solve Math, English &amp; Science problems.<br/>Earn Pokédollars. Fill your Pokédex.<br/>Catch the legendary <b>Pikachu Illustrator</b>!</p>
+        <button id="startBtn" class="btn-primary">Begin Adventure</button>
+        <button id="resetBtn" class="btn-ghost">Reset Save</button>
+      </div>
+    </section>
+
+    <!-- HOME (Hall selection) -->
+    <section id="homeScreen" class="screen">
+      <div class="daily-banner" id="dailyBanner"></div>
+      <div class="hall-grid">
+        <button class="hall-card hall-math"    id="goMath">
+          <div class="hall-icon">🔢</div>
+          <div class="hall-name">Math Hall</div>
+          <div class="hall-desc">Addition · Fractions · Algebra · Olympiad</div>
+          <div class="hall-bar-wrap"><div class="hall-bar" id="barMath"></div></div>
+        </button>
+        <button class="hall-card hall-english" id="goEnglish">
+          <div class="hall-icon">📖</div>
+          <div class="hall-name">English Hall</div>
+          <div class="hall-desc">Vocab · Grammar · Idioms · Reading</div>
+          <div class="hall-bar-wrap"><div class="hall-bar" id="barEnglish"></div></div>
+        </button>
+        <button class="hall-card hall-science" id="goScience">
+          <div class="hall-icon">🔬</div>
+          <div class="hall-name">Science Hall</div>
+          <div class="hall-desc">Body · Planets · Forces · Weather</div>
+          <div class="hall-bar-wrap"><div class="hall-bar" id="barScience"></div></div>
+        </button>
+      </div>
+      <div class="home-actions">
+        <button class="btn-secondary" id="goShop">🏪 Pokémon Center</button>
+        <button class="btn-secondary" id="goHallOfFame">🏆 Hall of Fame</button>
+        <button class="btn-secondary" id="goVault" id="goVault">⚡ Genius Vault</button>
+      </div>
+      <div id="dailyQuestBanner" class="daily-quest-banner"></div>
+    </section>
+
+    <!-- SKILL LIST -->
+    <section id="skillScreen" class="screen">
+      <h2 id="skillTitle" class="screen-title">Math Hall</h2>
+      <div id="skillList" class="skill-list"></div>
+    </section>
+
+    <!-- PLAY (problem) -->
+    <section id="playScreen" class="screen">
+      <div class="play-top">
+        <div class="progress-bar"><div id="progressFill" class="progress-fill"></div></div>
+        <div class="play-meta"><span id="skillLabel" class="skill-chip"></span><span id="streakDisplay" class="streak"></span></div>
+      </div>
+
+      <!-- Scene area -->
+      <div id="sceneContainer" class="scene-box"></div>
+
+      <!-- Word problem text + solution button -->
+      <div id="wordProblem" class="word-problem hidden"></div>
+      <button id="showSolutionBtn" class="btn-hint hidden">🪄 Show me how</button>
+
+      <!-- Question -->
+      <div id="questionText" class="question-text"></div>
+
+      <!-- Math free-text input -->
+      <div id="mathInputArea" class="math-input-area hidden">
+        <input id="mathInput" class="math-input" type="text" placeholder="Type your answer…" autocomplete="off" autocorrect="off" spellcheck="false"/>
+        <div class="numpad">
+          <button class="np" data-v="7">7</button><button class="np" data-v="8">8</button><button class="np" data-v="9">9</button><button class="np np-op" data-v="⌫">⌫</button>
+          <button class="np" data-v="4">4</button><button class="np" data-v="5">5</button><button class="np" data-v="6">6</button><button class="np np-op" data-v="/">÷</button>
+          <button class="np" data-v="1">1</button><button class="np" data-v="2">2</button><button class="np" data-v="3">3</button><button class="np np-op" data-v="−">−</button>
+          <button class="np" data-v="0">0</button><button class="np" data-v=".">.</button><button class="np" data-v="x">x</button><button class="np np-submit" data-v="✓">✓</button>
+        </div>
+      </div>
+
+      <!-- MCQ choices -->
+      <div id="choices" class="choices hidden"></div>
+
+      <!-- Feedback -->
+      <div id="feedbackBox" class="feedback-box hidden"></div>
+    </section>
+
+    <!-- SOLUTION walkthrough -->
+    <section id="solutionScreen" class="screen">
+      <h2 class="screen-title">🪄 How to solve it</h2>
+      <div id="solutionSteps" class="solution-steps"></div>
+      <button id="gotItBtn" class="btn-primary">Got it! Keep going ✓</button>
+    </section>
+
+    <!-- REWARD (graduation) -->
+    <section id="graduationScreen" class="screen">
+      <div class="graduation-card">
+        <div class="rosette">🏅</div>
+        <h2 id="gradTitle">Skill Mastered!</h2>
+        <p id="gradSkill" class="grad-skill-name"></p>
+        <p class="grad-desc">This skill has graduated to the <b>Hall of Fame</b>.</p>
+        <div class="grad-rewards">
+          <span>+1 Booster Pack</span>
+          <span>+50 ₽</span>
+        </div>
+        <button id="gradContinueBtn" class="btn-primary">Awesome! ✓</button>
+      </div>
+    </section>
+
+    <!-- POKÉMON CENTER (shop) -->
+    <section id="shopScreen" class="screen">
+      <h2 class="screen-title">🏪 Pokémon Center</h2>
+      <div class="shop-balance">₽ <b id="shopCoins">0</b></div>
+      <div class="shop-pack-section">
+        <div class="pack-art" id="packArt"></div>
+        <div class="pack-info">
+          <div class="pack-name">Booster Pack</div>
+          <div class="pack-sub">5 random Pokémon · 30₽</div>
+          <button id="buyPackBtn" class="btn-primary">Open Pack (30₽)</button>
+        </div>
+      </div>
+      <h3 class="shop-sub-title">Featured Cards</h3>
+      <div id="shopCards" class="shop-cards"></div>
+      <button id="closeShopBtn" class="btn-ghost">← Back</button>
+    </section>
+
+    <!-- PACK REVEAL -->
+    <section id="packScreen" class="screen">
+      <h2 class="screen-title">✨ New Cards!</h2>
+      <div id="packReveal" class="pack-reveal"></div>
+      <button id="packDoneBtn" class="btn-primary">Add to Pokédex</button>
+    </section>
+
+    <!-- POKÉDEX (collection) -->
+    <section id="dexScreen" class="screen">
+      <h2 class="screen-title">📖 Pokédex</h2>
+      <div id="dexProgress" class="dex-progress-bar-wrap"><div id="dexProgressFill" class="dex-progress-fill"></div><span id="dexProgressLabel"></span></div>
+      <div id="dexGrid" class="dex-grid"></div>
+      <button id="closeDexBtn" class="btn-ghost">← Back</button>
+    </section>
+
+    <!-- CARD DETAIL -->
+    <section id="cardDetailScreen" class="screen">
+      <div id="cardDetailInner" class="card-detail-inner"></div>
+      <button id="closeDetailBtn" class="btn-ghost">← Back</button>
+    </section>
+
+    <!-- HALL OF FAME -->
+    <section id="hofScreen" class="screen">
+      <h2 class="screen-title">🏆 Hall of Fame</h2>
+      <div id="hofList" class="hof-list"></div>
+      <button id="closeHofBtn" class="btn-ghost">← Back</button>
+    </section>
+
+    <!-- GENIUS VAULT -->
+    <section id="vaultScreen" class="screen">
+      <h2 class="screen-title">⚡ Genius Vault</h2>
+      <p class="vault-sub">The hardest problems on Earth. Can you crack them?</p>
+      <div id="vaultList" class="vault-list"></div>
+      <button id="closeVaultBtn" class="btn-ghost">← Back</button>
+    </section>
+
+    <!-- VAULT PROBLEM PLAY -->
+    <section id="vaultPlayScreen" class="screen">
+      <h2 class="screen-title vault-title">⚡ Genius Vault</h2>
+      <div id="vaultScene" class="scene-box"></div>
+      <div id="vaultQuestion" class="question-text"></div>
+      <div id="vaultInputArea" class="math-input-area">
+        <input id="vaultInput" class="math-input" type="text" placeholder="Think carefully…" autocomplete="off"/>
+        <div class="numpad">
+          <button class="np" data-v="7">7</button><button class="np" data-v="8">8</button><button class="np" data-v="9">9</button><button class="np np-op" data-v="⌫">⌫</button>
+          <button class="np" data-v="4">4</button><button class="np" data-v="5">5</button><button class="np" data-v="6">6</button><button class="np np-op" data-v="/">÷</button>
+          <button class="np" data-v="1">1</button><button class="np" data-v="2">2</button><button class="np" data-v="3">3</button><button class="np np-op" data-v="−">−</button>
+          <button class="np" data-v="0">0</button><button class="np" data-v=".">.</button><button class="np" data-v=" "> </button><button class="np np-submit" data-v="✓">✓</button>
+        </div>
+      </div>
+      <div id="vaultFeedback" class="feedback-box hidden"></div>
+      <button id="vaultSolutionBtn" class="btn-hint">🪄 Reveal Solution</button>
+    </section>
+
+    <!-- PARENT DASHBOARD -->
+    <section id="parentScreen" class="screen">
+      <h2 class="screen-title">👤 Parent / Teacher Dashboard</h2>
+      <div id="parentContent" class="parent-content"></div>
+      <button id="closeParentBtn" class="btn-ghost">← Back</button>
+    </section>
+
+    <!-- CHAMPION (win) -->
+    <section id="championScreen" class="screen champion-screen">
+      <div class="champion-inner">
+        <div id="illustratorCard" class="illustrator-card"></div>
+        <h1 class="champion-title">Champion of the Genius Academy!</h1>
+        <p class="champion-sub">You caught the legendary <b>Pikachu Illustrator</b>.</p>
+        <div class="confetti-wrap" id="confettiWrap"></div>
+        <button id="championCloseBtn" class="btn-primary">Continue as Champion</button>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script src="scenes.js"></script>
+<script src="art.js"></script>
+<script src="cards.js"></script>
+<script src="content.js"></script>
+<script src="vault.js"></script>
+<script src="engine.js"></script>
+<script src="shop.js"></script>
+<script src="pack.js"></script>
+<script src="collection.js"></script>
+<script src="game.js"></script>
+</body>
+</html>

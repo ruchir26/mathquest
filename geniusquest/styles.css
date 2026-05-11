@@ -1,0 +1,439 @@
+/* GeniusQuest: Trainer's Path
+   Dark indigo + per-Hall accents. Rich but not heavy. */
+:root {
+  --bg: #0d1b3e;
+  --bg2: #162447;
+  --bg3: #1f4068;
+  --paper: #fdf6e3;
+  --paper2: #ede4c5;
+  --ink: #1a1f3a;
+  --accent: #ffd014;      /* Pokéball gold */
+  --red:    #cc0000;      /* Pokéball red */
+  --good:   #48bb78;
+  --bad:    #e53e3e;
+  --info:   #63b3ed;
+  --math-c: #7c3aed;     /* violet / electric */
+  --eng-c:  #db2777;     /* rose */
+  --sci-c:  #0694a2;     /* teal */
+  --gold:   #ffd014;
+  --shadow: 0 4px 0 rgba(0,0,0,0.3);
+  --card-shadow: 0 8px 24px rgba(0,0,0,0.5);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;height:100%;
+  font-family:"Baloo 2","Segoe UI","Trebuchet MS",system-ui,sans-serif;
+  background:linear-gradient(160deg,var(--bg) 0%,var(--bg2) 50%,var(--bg3) 100%);
+  color:white;overflow:hidden;user-select:none;touch-action:manipulation;}
+#app{height:100%;display:flex;flex-direction:column;max-width:980px;margin:0 auto;position:relative;}
+
+/* ── HUD ─────────────────────────────────────── */
+.hud{display:flex;align-items:center;gap:8px;padding:8px 12px;
+  background:rgba(0,0,0,0.55);border-bottom:2px solid rgba(255,255,255,0.08);z-index:10;}
+.hud.hidden{display:none;}
+.hud-mid{flex:1;}
+.trainer-info{display:flex;align-items:center;gap:8px;}
+.trainer-title{font-size:13px;font-weight:800;color:var(--gold);text-transform:uppercase;letter-spacing:1px;white-space:nowrap;}
+.xp-bar{flex:1;height:6px;background:rgba(255,255,255,0.15);border-radius:3px;overflow:hidden;}
+.xp-fill{height:100%;background:linear-gradient(90deg,var(--gold),#ff9c00);transition:width 0.5s;}
+.hud-right{display:flex;align-items:center;gap:8px;}
+.hud-stat{font-size:15px;font-weight:700;background:rgba(255,255,255,0.12);padding:4px 10px;border-radius:999px;}
+.hud-btn{background:var(--accent);border:none;font-size:18px;width:38px;height:38px;border-radius:10px;
+  box-shadow:var(--shadow);cursor:pointer;color:var(--ink);}
+.hud-btn:active{transform:translateY(2px);}
+
+/* ── Screens ─────────────────────────────────── */
+#screens{flex:1;position:relative;overflow:hidden;}
+.screen{position:absolute;inset:0;display:none;flex-direction:column;padding:14px;overflow-y:auto;}
+.screen.active{display:flex;}
+.screen-title{text-align:center;font-size:26px;color:var(--accent);
+  margin:2px 0 14px;text-shadow:0 2px 0 rgba(0,0,0,0.3);}
+
+/* ── Welcome ──────────────────────────────────── */
+.welcome-card{margin:auto;text-align:center;background:var(--paper);color:var(--ink);
+  padding:30px 22px;border-radius:24px;box-shadow:var(--shadow);border:3px solid var(--red);max-width:400px;}
+.welcome-logo{display:flex;justify-content:center;margin-bottom:8px;}
+.welcome-card h1{font-size:38px;margin:4px 0;color:var(--ink);}
+.tagline{font-size:15px;font-weight:700;color:var(--bg2);margin:0 0 8px;}
+.lore{font-size:14px;color:#555;line-height:1.5;margin:12px 0 16px;}
+
+/* ── Buttons ─────────────────────────────────── */
+.btn-primary{background:var(--red);color:white;border:none;font-size:20px;font-weight:800;
+  padding:13px 28px;border-radius:14px;box-shadow:0 5px 0 #880000;cursor:pointer;font-family:inherit;margin:6px;}
+.btn-primary:active{transform:translateY(3px);box-shadow:0 2px 0 #880000;}
+.btn-secondary{background:rgba(255,255,255,0.12);color:white;border:1.5px solid rgba(255,255,255,0.25);
+  font-size:16px;font-weight:700;padding:11px 18px;border-radius:12px;cursor:pointer;font-family:inherit;margin:4px;}
+.btn-secondary:active{transform:translateY(2px);}
+.btn-ghost{background:transparent;border:none;color:rgba(255,255,255,0.6);font-size:15px;
+  text-decoration:underline;cursor:pointer;font-family:inherit;margin:6px auto;display:block;}
+.btn-hint{background:rgba(255,200,61,0.18);border:1.5px solid var(--accent);color:var(--accent);
+  font-size:14px;font-weight:700;padding:8px 14px;border-radius:10px;cursor:pointer;font-family:inherit;margin:6px;}
+
+/* ── Home ────────────────────────────────────── */
+.daily-banner{text-align:center;font-size:14px;color:rgba(255,255,255,0.7);padding:6px 0;font-style:italic;}
+.hall-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px;margin-bottom:12px;}
+.hall-card{border-radius:18px;padding:18px;cursor:pointer;border:3px solid transparent;text-align:left;
+  transition:transform 0.15s;font-family:inherit;color:white;}
+.hall-card:active{transform:scale(0.97);}
+.hall-math   {background:linear-gradient(135deg,#2d1b6e,#4c1d95);border-color:var(--math-c);}
+.hall-english{background:linear-gradient(135deg,#6b0d3a,#9d174d);border-color:var(--eng-c);}
+.hall-science{background:linear-gradient(135deg,#065f46,#0694a2);border-color:var(--sci-c);}
+.hall-icon{font-size:36px;margin-bottom:6px;}
+.hall-name{font-size:20px;font-weight:800;margin:4px 0 2px;}
+.hall-desc{font-size:13px;opacity:0.75;margin-bottom:8px;}
+.hall-bar-wrap{height:6px;background:rgba(255,255,255,0.2);border-radius:3px;overflow:hidden;}
+.hall-bar{height:100%;background:var(--gold);transition:width 0.5s;}
+.home-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:10px;}
+.daily-quest-banner{background:rgba(255,212,0,0.12);border:1.5px solid var(--gold);border-radius:12px;
+  padding:10px 14px;font-size:14px;text-align:center;margin-top:4px;}
+
+/* ── Skill list ──────────────────────────────── */
+.skill-list{display:flex;flex-direction:column;gap:8px;max-width:600px;width:100%;margin:0 auto;}
+.skill-item{background:var(--paper);color:var(--ink);padding:14px 16px;border-radius:14px;
+  box-shadow:var(--shadow);display:flex;align-items:center;gap:14px;cursor:pointer;border:3px solid transparent;}
+.skill-item:active{transform:translateY(2px);}
+.skill-item.graduated{border-color:var(--good);background:#f0fff4;}
+.skill-emoji{font-size:28px;}
+.skill-info{flex:1;}
+.skill-name{font-weight:800;font-size:16px;}
+.skill-sub{font-size:12px;color:#666;margin-top:2px;}
+.skill-badge{font-size:18px;}
+.skill-prog{display:flex;align-items:center;gap:6px;margin-top:6px;}
+.skill-bar-w{flex:1;height:6px;background:#ddd;border-radius:3px;overflow:hidden;}
+.skill-bar-f{height:100%;background:linear-gradient(90deg,var(--info),var(--good));transition:width 0.4s;}
+
+/* ── Play screen ─────────────────────────────── */
+.play-top{margin-bottom:10px;}
+.progress-bar{height:12px;background:rgba(255,255,255,0.15);border-radius:6px;overflow:hidden;
+  border:1px solid rgba(255,255,255,0.2);margin-bottom:6px;}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--good),#68d391);transition:width 0.4s;}
+.play-meta{display:flex;align-items:center;gap:8px;}
+.skill-chip{background:rgba(255,255,255,0.15);padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700;}
+.streak{font-size:14px;font-weight:800;color:var(--gold);}
+.scene-box{background:rgba(255,255,255,0.06);border-radius:16px;min-height:180px;max-height:260px;
+  margin-bottom:10px;display:flex;align-items:center;justify-content:center;overflow:hidden;
+  border:1px solid rgba(255,255,255,0.1);}
+.scene-box svg{max-width:100%;max-height:255px;}
+.word-problem{background:var(--paper);color:var(--ink);padding:12px 16px;border-radius:12px;
+  font-size:16px;line-height:1.5;margin-bottom:8px;box-shadow:var(--shadow);}
+.hidden{display:none!important;}
+.question-text{text-align:center;font-size:19px;font-weight:700;color:white;
+  background:rgba(255,255,255,0.08);padding:11px 14px;border-radius:12px;margin-bottom:12px;line-height:1.4;}
+
+/* Math input */
+.math-input-area{display:flex;flex-direction:column;align-items:center;gap:8px;max-width:480px;width:100%;margin:0 auto;}
+.math-input{width:100%;font-size:28px;font-weight:800;text-align:center;
+  padding:12px;border-radius:14px;border:3px solid var(--accent);background:#fff;color:var(--ink);
+  font-family:inherit;outline:none;}
+.math-input:focus{border-color:var(--red);box-shadow:0 0 0 3px rgba(204,0,0,0.2);}
+.numpad{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;width:100%;max-width:320px;}
+.np{padding:14px 8px;font-size:18px;font-weight:800;border:none;border-radius:10px;
+  background:var(--paper);color:var(--ink);cursor:pointer;font-family:inherit;box-shadow:0 3px 0 #ccc;}
+.np:active{transform:translateY(2px);box-shadow:none;}
+.np-op{background:#ede4c5;}
+.np-submit{background:var(--good);color:white;box-shadow:0 3px 0 #2e8b50;}
+
+/* MCQ choices */
+.choices{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;max-width:520px;width:100%;margin:0 auto;}
+.choice-btn{background:var(--paper);color:var(--ink);border:3px solid var(--paper);border-radius:14px;
+  padding:15px 12px;font-size:17px;font-weight:700;cursor:pointer;font-family:inherit;
+  box-shadow:var(--shadow);min-height:60px;text-align:center;line-height:1.3;transition:transform 0.1s;}
+.choice-btn:active:not(:disabled){transform:translateY(2px);}
+.choice-btn.correct{background:var(--good);color:white;border-color:#2e8b50;animation:pulse 0.4s;}
+.choice-btn.wrong  {background:var(--bad);color:white;border-color:#b83030;animation:shake 0.4s;}
+.choice-btn.faded  {opacity:0.35;}
+.choice-btn:disabled{cursor:not-allowed;}
+.feedback-box{padding:12px 14px;border-radius:10px;margin-top:10px;font-size:15px;
+  background:rgba(255,212,0,0.15);border-left:4px solid var(--gold);color:white;line-height:1.5;}
+.feedback-box.good{background:rgba(72,187,120,0.2);border-color:var(--good);}
+
+/* Solution steps */
+.solution-steps{display:flex;flex-direction:column;gap:12px;max-width:600px;width:100%;margin:0 auto 16px;}
+.step-card{background:var(--paper);color:var(--ink);padding:14px 16px;border-radius:14px;
+  box-shadow:var(--shadow);display:flex;gap:12px;align-items:flex-start;}
+.step-num{background:var(--red);color:white;font-size:14px;font-weight:800;
+  min-width:28px;height:28px;border-radius:999px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.step-text{font-size:15px;line-height:1.5;flex:1;}
+.step-scene{flex-shrink:0;width:80px;height:60px;background:#f0f4ff;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;font-size:24px;}
+
+/* Graduation */
+.graduation-card{margin:auto;text-align:center;background:var(--paper);color:var(--ink);
+  padding:36px 24px;border-radius:24px;box-shadow:var(--card-shadow);border:3px solid var(--gold);max-width:400px;}
+.rosette{font-size:80px;line-height:1;}
+.graduation-card h2{font-size:32px;color:var(--red);margin:8px 0;}
+.grad-skill-name{font-size:22px;font-weight:800;color:var(--bg2);margin:4px 0;}
+.grad-desc{font-size:15px;color:#555;margin:8px 0;}
+.grad-rewards{display:flex;gap:16px;justify-content:center;margin:14px 0;font-size:20px;font-weight:800;color:var(--good);}
+
+/* Shop */
+.shop-balance{text-align:center;font-size:22px;font-weight:800;color:var(--gold);margin-bottom:14px;}
+.shop-pack-section{display:flex;gap:16px;align-items:center;background:rgba(255,255,255,0.06);
+  border-radius:16px;padding:16px;margin-bottom:16px;border:1.5px solid rgba(255,255,255,0.1);}
+.pack-art{width:90px;height:130px;flex-shrink:0;background:linear-gradient(135deg,var(--red),#ff6060);
+  border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:48px;
+  box-shadow:var(--card-shadow);}
+.pack-name{font-size:20px;font-weight:800;margin-bottom:4px;}
+.pack-sub{font-size:14px;opacity:0.7;margin-bottom:12px;}
+.shop-sub-title{font-size:18px;font-weight:800;margin:12px 0 8px;color:var(--accent);}
+.shop-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:12px;}
+.shop-card-slot{background:var(--paper);color:var(--ink);border-radius:14px;padding:10px;
+  text-align:center;box-shadow:var(--shadow);}
+.shop-card-art{width:100%;height:90px;display:flex;align-items:center;justify-content:center;margin-bottom:6px;}
+.shop-card-name{font-size:13px;font-weight:800;margin-bottom:4px;}
+.shop-card-price{font-size:12px;color:#777;margin-bottom:6px;}
+.shop-card-buy{font-size:12px;font-weight:700;padding:5px 10px;border-radius:8px;
+  background:var(--red);color:white;border:none;cursor:pointer;font-family:inherit;}
+.shop-card-buy:disabled{background:#ccc;cursor:not-allowed;}
+.rarity-badge{display:inline-block;padding:1px 6px;border-radius:999px;font-size:10px;font-weight:800;margin-bottom:2px;}
+.r-common   {background:#888;color:white;}
+.r-uncommon {background:#28a745;color:white;}
+.r-rare     {background:#007bff;color:white;}
+.r-holo     {background:linear-gradient(90deg,#9b59b6,#e74c3c);color:white;}
+.r-legendary{background:linear-gradient(90deg,#f1c40f,#e67e22);color:white;}
+.r-master   {background:linear-gradient(90deg,#f1c40f,#cc0000,#9b59b6);color:white;}
+
+/* Pack reveal */
+.pack-reveal{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;padding:10px 0;}
+.pack-card{background:var(--paper);color:var(--ink);border-radius:16px;width:130px;
+  padding:10px;text-align:center;box-shadow:var(--card-shadow);animation:cardDealIn 0.5s ease-out both;}
+.pack-card.rare-up{box-shadow:0 0 20px rgba(0,123,255,0.6);}
+.pack-card.holo   {box-shadow:0 0 20px rgba(155,89,182,0.8);animation:cardDealIn 0.5s ease-out both, foilShine 3s infinite;}
+.pack-card.legend {box-shadow:0 0 30px rgba(241,196,15,0.9);animation:cardDealIn 0.5s ease-out both, legendPulse 1.5s infinite;}
+.pack-card-art{width:100%;height:100px;display:flex;align-items:center;justify-content:center;margin-bottom:8px;}
+.pack-card-name{font-size:14px;font-weight:800;margin-bottom:2px;}
+.pack-card-type{font-size:11px;color:#888;}
+@keyframes cardDealIn{from{opacity:0;transform:scale(0.6) rotate(-8deg);}to{opacity:1;transform:scale(1) rotate(0);}}
+@keyframes foilShine{0%,100%{filter:brightness(1);}50%{filter:brightness(1.25) hue-rotate(30deg);}}
+@keyframes legendPulse{0%,100%{box-shadow:0 0 30px rgba(241,196,15,0.9);}50%{box-shadow:0 0 60px rgba(241,196,15,1),0 0 0 6px rgba(241,196,15,0.3);}}
+
+/* Pokédex */
+.dex-progress-bar-wrap{height:10px;background:rgba(255,255,255,0.15);border-radius:5px;overflow:hidden;
+  margin-bottom:12px;position:relative;}
+.dex-progress-fill{height:100%;background:linear-gradient(90deg,var(--red),var(--gold));transition:width 0.6s;}
+#dexProgressLabel{position:absolute;right:0;top:-18px;font-size:13px;font-weight:700;color:var(--gold);}
+.dex-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:8px;}
+.dex-cell{background:rgba(255,255,255,0.06);border-radius:12px;padding:6px;text-align:center;cursor:pointer;
+  border:2px solid transparent;transition:transform 0.1s;}
+.dex-cell:active{transform:scale(0.94);}
+.dex-cell.owned{border-color:var(--gold);}
+.dex-cell-art{width:100%;height:55px;display:flex;align-items:center;justify-content:center;}
+.dex-cell-name{font-size:10px;font-weight:700;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.dex-cell.owned .dex-cell-name{color:white;}
+.dex-cell:not(.owned) .dex-cell-name{color:rgba(255,255,255,0.3);}
+
+/* Card detail */
+.card-detail-inner{margin:auto;max-width:380px;width:100%;text-align:center;}
+.detail-card-frame{background:var(--paper);color:var(--ink);border-radius:20px;padding:20px;
+  box-shadow:var(--card-shadow);border:4px solid var(--gold);margin-bottom:16px;}
+.detail-art{width:100%;height:180px;display:flex;align-items:center;justify-content:center;
+  background:#f0f4ff;border-radius:12px;margin-bottom:10px;}
+.detail-name{font-size:26px;font-weight:800;margin:4px 0;}
+.detail-types{display:flex;gap:8px;justify-content:center;margin:6px 0;}
+.type-chip{padding:3px 10px;border-radius:999px;font-size:12px;font-weight:800;color:white;}
+.detail-dex{font-size:13px;color:#888;margin-bottom:8px;}
+.detail-flavor{font-style:italic;font-size:14px;color:#555;line-height:1.5;}
+
+/* Hall of Fame */
+.hof-list{display:flex;flex-direction:column;gap:8px;max-width:600px;width:100%;margin:0 auto;}
+.hof-item{background:var(--paper);color:var(--ink);padding:14px 16px;border-radius:14px;
+  box-shadow:var(--shadow);display:flex;align-items:center;gap:14px;border:2px solid var(--good);}
+.hof-rosette{font-size:30px;}
+.hof-info{flex:1;}
+.hof-skill-name{font-weight:800;font-size:16px;}
+.hof-date{font-size:12px;color:#888;}
+.hof-empty{text-align:center;color:rgba(255,255,255,0.5);font-style:italic;margin-top:30px;}
+
+/* Genius Vault */
+.vault-sub{text-align:center;opacity:0.7;font-style:italic;margin-top:-8px;margin-bottom:14px;font-size:15px;}
+.vault-list{display:flex;flex-direction:column;gap:8px;max-width:600px;width:100%;margin:0 auto;}
+.vault-item{background:rgba(255,255,255,0.06);border:1.5px solid rgba(255,200,61,0.3);border-radius:14px;
+  padding:14px 16px;cursor:pointer;transition:border-color 0.2s;}
+.vault-item:hover{border-color:var(--gold);}
+.vault-item.solved{border-color:var(--good);background:rgba(72,187,120,0.08);}
+.vault-item-title{font-size:16px;font-weight:800;margin-bottom:4px;}
+.vault-item-sub{font-size:13px;opacity:0.6;}
+.vault-title{color:var(--gold)!important;}
+
+/* Parent */
+.parent-content{background:var(--paper);color:var(--ink);padding:16px;border-radius:16px;
+  flex:1;overflow-y:auto;box-shadow:var(--shadow);}
+.p-section{margin-bottom:16px;}
+.p-section h3{margin:0 0 8px;border-bottom:2px solid var(--accent);padding-bottom:4px;font-size:16px;}
+.p-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:14px;}
+.p-bar-w{flex:1;max-width:160px;height:7px;background:#ddd;border-radius:4px;overflow:hidden;margin:0 10px;}
+.p-bar-f{height:100%;background:linear-gradient(90deg,#63b3ed,#48bb78);}
+
+/* Champion */
+.champion-screen{align-items:center;justify-content:center;background:radial-gradient(ellipse,#3a1000,#0d1b3e);}
+.champion-inner{text-align:center;max-width:480px;width:100%;padding:20px;}
+.illustrator-card{margin:0 auto 16px;width:200px;height:280px;background:linear-gradient(135deg,#fdf6e3,#ffe9b3);
+  border:6px solid var(--gold);border-radius:20px;box-shadow:0 0 60px rgba(255,208,0,0.8),var(--card-shadow);
+  display:flex;align-items:center;justify-content:center;font-size:80px;
+  animation:legendPulse 2s infinite;}
+.champion-title{font-size:30px;font-weight:800;color:var(--gold);margin:8px 0;}
+.champion-sub{font-size:16px;opacity:0.85;}
+
+/* ── Animations ──────────────────────────────── */
+@keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.06);}}
+@keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-6px);}75%{transform:translateX(6px);}}
+@keyframes sparkle{
+  0%{opacity:0;transform:scale(0) rotate(0);}
+  30%{opacity:1;transform:scale(1.4) rotate(180deg);}
+  100%{opacity:0;transform:scale(0.5) translateY(-50px) rotate(360deg);}}
+.sparkle{position:fixed;pointer-events:none;font-size:22px;opacity:0;animation:sparkle 1.2s forwards;}
+@keyframes confetti-fall{from{transform:translateY(-10px) rotate(0);opacity:1;}to{transform:translateY(110vh) rotate(720deg);opacity:0;}}
+.confetti-piece{position:fixed;top:-10px;width:10px;height:10px;border-radius:2px;animation:confetti-fall 3s linear forwards;}
+@media(max-width:520px){
+  .choices{grid-template-columns:1fr;}
+  .hall-grid{grid-template-columns:1fr;}
+  .shop-cards{grid-template-columns:repeat(2,1fr);}
+}
+
+/* ── Skill item (detail) ──────────────────────────── */
+.skill-item{background:var(--paper);color:var(--ink);padding:14px 16px;border-radius:14px;
+  box-shadow:var(--shadow);display:flex;align-items:center;gap:14px;border:3px solid transparent;}
+.skill-item.mastered{border-color:#48bb78;background:#f0fff4;}
+.skill-icon{font-size:28px;flex-shrink:0;}
+.skill-info{flex:1;}
+.skill-name{font-weight:800;font-size:16px;}
+.skill-desc{font-size:12px;color:#666;margin-top:2px;}
+.skill-stats{font-size:11px;color:#888;margin-top:3px;}
+.btn-skill-go{background:var(--red);color:white;border:none;font-size:15px;font-weight:800;
+  padding:9px 16px;border-radius:10px;cursor:pointer;font-family:inherit;flex-shrink:0;
+  box-shadow:0 3px 0 #880000;}
+.btn-skill-go:active{transform:translateY(2px);box-shadow:none;}
+.btn-skill-go.mastered{background:var(--good);box-shadow:0 3px 0 #2e8b50;}
+
+/* ── Feedback ─────────────────────────────────────── */
+.feedback-correct{background:rgba(72,187,120,0.2)!important;border-color:var(--good)!important;}
+.feedback-wrong{background:rgba(229,62,62,0.2)!important;border-color:var(--bad)!important;}
+.feedback-solution{background:rgba(0,0,0,0.4)!important;border-color:var(--gold)!important;max-height:60vh;overflow-y:auto;}
+.coin-reward{color:var(--gold);font-weight:800;margin-left:6px;}
+.choice-correct{background:var(--good)!important;color:white!important;border-color:#2e8b50!important;}
+.choice-wrong{background:var(--bad)!important;color:white!important;border-color:#b83030!important;}
+
+/* Coin flash */
+@keyframes coinFlash{0%,100%{transform:scale(1);}50%{transform:scale(1.3);color:#fff700;}}
+.coin-flash{animation:coinFlash 0.5s ease-out;}
+
+/* ── Daily quest ─────────────────────────────────── */
+.dq-done{color:var(--good);font-weight:700;}
+.dq-progress{color:var(--gold);}
+
+/* ── Pack card flip mechanism ─────────────────────── */
+.pack-card-slot{width:140px;height:200px;cursor:pointer;perspective:700px;
+  animation:cardDealIn 0.5s ease-out both;}
+.pack-card-inner{width:100%;height:100%;position:relative;transform-style:preserve-3d;
+  transition:transform 0.6s cubic-bezier(.4,0,.2,1);}
+.pack-card-inner.flipped{transform:rotateY(180deg);}
+.pack-card-back,.pack-card-front{position:absolute;inset:0;backface-visibility:hidden;border-radius:14px;}
+.pack-card-back{background:linear-gradient(135deg,var(--red),#7c3aed);display:flex;
+  align-items:center;justify-content:center;font-size:50px;border:3px solid rgba(255,255,255,0.3);}
+.card-back-design{font-size:52px;filter:drop-shadow(0 2px 8px #000);}
+.pack-card-front{background:var(--paper);color:var(--ink);transform:rotateY(180deg);
+  padding:8px;text-align:center;box-shadow:var(--card-shadow);border:3px solid #ddd;display:flex;flex-direction:column;align-items:center;}
+.pack-card-front.r-holo{border-color:#9b59b6;}
+.pack-card-front.r-legendary{border-color:#f1c40f;}
+.pack-card-front.r-master{border:3px solid transparent;background:
+  linear-gradient(var(--paper),var(--paper)) padding-box,
+  linear-gradient(90deg,#f1c40f,#cc0000,#9b59b6) border-box;}
+.holo-shimmer{animation:foilShine 2s infinite;}
+.legend-glow{box-shadow:0 0 30px rgba(241,196,15,0.9)!important;animation:legendPulse 1.5s infinite!important;}
+.master-glow{box-shadow:0 0 40px rgba(124,58,237,0.8),0 0 20px rgba(204,0,0,0.6)!important;}
+.pack-art-area{width:100%;height:90px;display:flex;align-items:center;justify-content:center;margin-bottom:4px;}
+.pack-card-name{font-size:13px;font-weight:800;width:100%;}
+.pack-card-flavor{font-size:9px;color:#888;font-style:italic;margin-top:2px;width:100%;overflow:hidden;text-overflow:ellipsis;}
+
+/* Screen shake for legendary */
+@keyframes screenShake{0%,100%{transform:none;}20%{transform:translate(-6px,3px);}40%{transform:translate(6px,-3px);}60%{transform:translate(-4px,4px);}80%{transform:translate(4px,-2px);}}
+.shake{animation:screenShake 0.5s ease-out;}
+
+/* ── Vault item (expanded) ───────────────────────── */
+.vault-item{display:flex;align-items:center;gap:12px;}
+.vault-icon{font-size:28px;flex-shrink:0;}
+.vault-info{flex:1;}
+.vault-title{font-size:16px;font-weight:800;}
+.vault-diff{font-size:12px;opacity:0.65;margin-top:2px;}
+.btn-vault-go{background:var(--gold);color:var(--ink);border:none;font-size:14px;font-weight:800;
+  padding:9px 14px;border-radius:10px;cursor:pointer;font-family:inherit;flex-shrink:0;}
+.btn-vault-go:active{transform:translateY(2px);}
+.vault-solved .vault-icon{color:var(--good);}
+.vault-sol-narrative{font-style:italic;color:var(--gold);margin-bottom:10px;font-size:14px;}
+.vault-sol-step{background:rgba(255,255,255,0.06);border-radius:10px;padding:10px;margin-bottom:8px;}
+.vault-sol-step strong{color:var(--accent);}
+.vault-sol-step p{margin:4px 0;font-size:13px;}
+
+/* ── Solution screen (game) ──────────────────────── */
+.solution-panel{background:rgba(255,255,255,0.07);border-radius:12px;padding:12px 14px;
+  border-left:4px solid var(--gold);}
+.sol-step-num{font-size:12px;font-weight:800;color:var(--gold);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;}
+.sol-step-body{margin:0;font-size:15px;line-height:1.5;}
+.sol-formula{background:rgba(255,208,20,0.12);border:1.5px solid var(--gold);border-radius:8px;
+  padding:6px 12px;margin-top:6px;font-size:16px;font-weight:800;color:var(--gold);text-align:center;font-family:monospace,sans-serif;}
+
+/* ── Pokédex (grid) ──────────────────────────────── */
+.dex-slot{background:rgba(255,255,255,0.06);border-radius:12px;padding:6px;text-align:center;cursor:pointer;
+  border:2px solid transparent;transition:transform 0.1s;display:flex;flex-direction:column;align-items:center;}
+.dex-slot:active{transform:scale(0.94);}
+.dex-slot.r-common{border-color:#888;}
+.dex-slot.r-uncommon{border-color:#28a745;}
+.dex-slot.r-rare{border-color:#007bff;}
+.dex-slot.r-holo{border-color:#9b59b6;}
+.dex-slot.r-legendary{border-color:#f1c40f;box-shadow:0 0 8px rgba(241,196,15,0.4);}
+.dex-slot.r-master{border-color:#f1c40f;box-shadow:0 0 14px rgba(124,58,237,0.6);}
+.dex-unknown{border-color:rgba(255,255,255,0.1);opacity:0.5;}
+.dex-art{width:100%;height:52px;display:flex;align-items:center;justify-content:center;}
+.dex-name{font-size:10px;font-weight:700;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;color:white;}
+.dex-count{font-size:9px;color:var(--gold);font-weight:700;}
+.dex-mystery{font-size:24px;color:rgba(255,255,255,0.2);}
+.dex-dex-num{font-size:9px;color:rgba(255,255,255,0.3);}
+.dex-progress-bar-wrap{position:relative;display:flex;align-items:center;height:20px;margin-bottom:8px;}
+#dexProgressLabel{position:static;font-size:12px;font-weight:700;color:var(--gold);margin-left:8px;white-space:nowrap;}
+
+/* ── Card detail ─────────────────────────────────── */
+.detail-art-wrap{width:100%;display:flex;justify-content:center;margin-bottom:12px;}
+.detail-name{font-size:24px;font-weight:800;margin:4px 0;color:var(--ink);}
+.detail-types{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:6px 0;}
+.type-badge{padding:3px 10px;border-radius:999px;font-size:11px;font-weight:800;color:white;background:#555;}
+.type-badge.type-fire{background:#e25822;}   .type-badge.type-water{background:#1e90ff;}
+.type-badge.type-grass{background:#4caf50;}  .type-badge.type-electric{background:#f1c40f;color:#333;}
+.type-badge.type-psychic{background:#e91e63;} .type-badge.type-normal{background:#9e9e9e;}
+.type-badge.type-flying{background:#7986cb;} .type-badge.type-poison{background:#9c27b0;}
+.type-badge.type-ground{background:#795548;} .type-badge.type-rock{background:#607d8b;}
+.type-badge.type-ice{background:#00bcd4;}    .type-badge.type-dragon{background:#3f51b5;}
+.type-badge.type-dark{background:#263238;}   .type-badge.type-steel{background:#b0bec5;color:#333;}
+.type-badge.type-fairy{background:#f48fb1;color:#333;}
+.detail-rarity{margin:6px auto;display:inline-block;}
+.detail-flavor{font-style:italic;font-size:14px;color:#666;margin:8px 0;line-height:1.6;}
+.detail-owned{font-size:14px;color:#555;font-weight:700;}
+
+/* ── Parent dashboard table ──────────────────────── */
+.parent-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;}
+.parent-stat{background:#f0f4ff;border-radius:10px;padding:10px;text-align:center;}
+.ps-val{font-size:22px;font-weight:800;color:var(--red);}
+.ps-label{font-size:11px;color:#666;}
+.parent-table{width:100%;border-collapse:collapse;font-size:13px;}
+.parent-table th{background:var(--red);color:white;padding:7px 8px;text-align:left;}
+.parent-table td{padding:6px 8px;border-bottom:1px solid #eee;}
+.parent-table tr:nth-child(even) td{background:#f9f9f9;}
+
+/* ── HOF ─────────────────────────────────────────── */
+.hof-entry{background:rgba(255,255,255,0.07);border:1.5px solid var(--good);border-radius:14px;
+  padding:14px 16px;display:flex;align-items:center;gap:14px;}
+.hof-medal{font-size:30px;}
+.hof-skill{font-size:16px;font-weight:800;color:var(--gold);}
+.hof-date{font-size:12px;opacity:0.6;}
+.hof-empty{text-align:center;opacity:0.5;font-style:italic;margin-top:30px;}
+
+/* ── Shop buy button ─────────────────────────────── */
+.btn-buy-card{font-size:12px;font-weight:700;padding:6px 10px;border-radius:8px;
+  background:var(--red);color:white;border:none;cursor:pointer;font-family:inherit;width:100%;}
+.btn-buy-card:disabled{background:#aaa;cursor:not-allowed;}
+.shop-card-slot.owned{border:2px solid var(--good);}
+
+/* ── Float animation (used by hall heroes) ───────── */
+@keyframes float-y{from{transform:translateY(0);}to{transform:translateY(-8px);}}
+
+/* ── Sparkle float ───────────────────────────────── */
+@keyframes sparkle-float{0%{opacity:1;transform:translateY(0) scale(1);}100%{opacity:0;transform:translateY(-60px) scale(0.5);}}
+.sparkle-float{animation:sparkle-float 1s ease-out forwards;}
