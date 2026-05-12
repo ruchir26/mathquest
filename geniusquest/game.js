@@ -15,8 +15,9 @@
   let problemStartMs = 0;
   let sessionCorrect = 0;
   let sessionTotal = 0;
-  let practicePool = [];       // problems for current skill session
+  let practicePool = [];       // full problem list for current skill
   let practiceIdx = 0;
+  let sessionSeen = new Set(); // ids already shown this session (for dedup)
   const SESSION_LENGTH = 8;
   let pendingGradSkillId = null;
   let isAnswering = false;     // guard: prevent double-submission
@@ -136,16 +137,11 @@
   // ── Problem session ────────────────────────────────────────────────────────
   function startSkillSession(skillId) {
     activeSkillId = skillId;
-    const pool = PROBLEMS_BY_SKILL_GQ[skillId] || [];
-    practicePool = [];
+    practicePool = PROBLEMS_BY_SKILL_GQ[skillId] || [];
     sessionCorrect = 0;
     sessionTotal = 0;
     practiceIdx = 0;
-
-    for (let i = 0; i < SESSION_LENGTH; i++) {
-      const p = pickProblemGQ(profile, skillId, pool);
-      if (p) practicePool.push(p);
-    }
+    sessionSeen = new Set();   // reset per-session dedup tracker
 
     if (!practicePool.length) {
       alert('No problems available for this skill yet!');
@@ -155,11 +151,17 @@
   }
 
   function showNextProblem() {
-    if (practiceIdx >= practicePool.length || practiceIdx >= SESSION_LENGTH) {
+    if (practiceIdx >= SESSION_LENGTH) {
       endSkillSession();
       return;
     }
-    currentProblem = practicePool[practiceIdx];
+    // Pick a problem that hasn't been shown this session yet.
+    // Fall back to the full pool only when all unique problems are exhausted.
+    const freshPool = practicePool.filter(p => !sessionSeen.has(p.id));
+    const pickFrom = freshPool.length > 0 ? freshPool : practicePool;
+    currentProblem = pickProblemGQ(profile, activeSkillId, pickFrom);
+    if (!currentProblem) { endSkillSession(); return; }
+    sessionSeen.add(currentProblem.id);
     practiceIdx++;
     renderProblem(currentProblem);
   }
