@@ -19,6 +19,8 @@
   let practiceIdx = 0;
   const SESSION_LENGTH = 8;
   let pendingGradSkillId = null;
+  let isAnswering = false;     // guard: prevent double-submission
+  let advanceTimer = null;     // pending showNextProblem timeout
 
   // Vault state
   let activeVaultProblem = null;
@@ -201,6 +203,10 @@
       if (defaults[problem.skillId]) defaults[problem.skillId]();
     }
 
+    // Reset answer guard for the new problem
+    isAnswering = false;
+    if (advanceTimer) { clearTimeout(advanceTimer); advanceTimer = null; }
+
     // Feedback clear
     const fb = $('feedbackBox');
     fb.classList.add('hidden');
@@ -240,6 +246,8 @@
   }
 
   function handleMCQAnswer(idx, btn, problem) {
+    if (isAnswering) return;                 // block double-tap
+    isAnswering = true;
     // Disable all buttons
     $('choices').querySelectorAll('.choice-btn').forEach(b => b.disabled = true);
     const correct = idx === problem.correctIdx;
@@ -247,10 +255,15 @@
   }
 
   function handleMathSubmit() {
-    const raw = $('mathInput').value;
+    if (isAnswering) return;                 // block double-tap / numpad spam
+    const inp = $('mathInput');
+    if (inp.disabled) return;               // already submitted
+    const raw = inp.value.trim();
+    if (!raw) return;                        // empty — do nothing
+    isAnswering = true;
+    inp.disabled = true;
     const { correct } = gradeMathGQ(raw, currentProblem.answer,
       { tolerance: currentProblem.tolerance !== undefined ? currentProblem.tolerance : 1e-6 });
-    $('mathInput').disabled = true;
     submitAnswer(correct, currentProblem, null);
   }
 
@@ -289,15 +302,17 @@
       pendingGradSkillId = problem.skillId;
     }
 
-    // Next problem after delay
-    setTimeout(() => {
+    // Next problem after delay — store timer so solution screen can cancel it
+    if (advanceTimer) clearTimeout(advanceTimer);
+    advanceTimer = setTimeout(() => {
+      advanceTimer = null;
       if (pendingGradSkillId) {
         showGraduation(pendingGradSkillId);
         pendingGradSkillId = null;
       } else {
         showNextProblem();
       }
-    }, correct ? 1400 : 2600);
+    }, correct ? 1400 : 2800);
   }
 
   // ── Solution walkthrough ───────────────────────────────────────────────────
@@ -337,7 +352,6 @@
     }
 
     $('gotItBtn').onclick = () => {
-      show('playScreen');
       showNextProblem();
     };
     show('solutionScreen');
@@ -625,7 +639,9 @@
   // ── Numpad wiring ──────────────────────────────────────────────────────────
   function wireNumpad(inputId, submitFn) {
     const inp = $(inputId);
-    document.querySelectorAll('.numpad .np').forEach(btn => {
+    // Scope to mathInputArea only — do NOT select vault numpad buttons
+    const area = $('mathInputArea');
+    area.querySelectorAll('.np').forEach(btn => {
       btn.addEventListener('click', () => {
         const v = btn.dataset.v;
         if (v === '⌫') { inp.value = inp.value.slice(0, -1); }
@@ -633,7 +649,7 @@
         else if (v === '−') { inp.value += '-'; }
         else if (v === '/') { inp.value += '/'; }
         else { inp.value += v; }
-        inp.focus();
+        if (!inp.disabled) inp.focus();
       });
     });
     inp.addEventListener('keydown', e => {
